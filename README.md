@@ -2,8 +2,11 @@
 
 이 레포지토리는 scratch-gui 을 fork하여 팀모노리스의 필요에 맞게 변경한 것입니다.
 
-package.json 의 버전을 관리하여 `npm publish` 하면 `@team-monolith`로 publish 됩니다.
-
+package.json 의 버전을 수정한 후 다음 절차로 배포합니다.
+```
+npm run build
+npm publish
+```
 
 #### Scratch GUI is a set of React components that comprise the interface for creating and running Scratch 3.0 projects
 
