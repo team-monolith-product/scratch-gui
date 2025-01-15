@@ -51,72 +51,104 @@ import roborisenG1IconURL from './roborisen_gcube/roborisen_g1/roborisen_g1.jpg'
 import roborisenG1ConnectionSmallIconURL from './roborisen_gcube/roborisen_g1/roborisen_g1-small.png';
 import roborisenG2IconURL from './roborisen_gcube/roborisen_g2/roborisen_g2.jpg';
 import roborisenG2ConnectionSmallIconURL from './roborisen_gcube/roborisen_g2/roborisen_g2-small.png';
+import roborisenG3IconURL from './roborisen_gcube/roborisen_g3/roborisen_g3.jpg';
+import roborisenG3ConnectionSmallIconURL from './roborisen_gcube/roborisen_g3/roborisen_g3-small.png';
+import roborisenG4IconURL from './roborisen_gcube/roborisen_g4/roborisen_g4.jpg';
+import roborisenG4ConnectionSmallIconURL from './roborisen_gcube/roborisen_g4/roborisen_g4-small.png';
+import roborisenWormBotIconURL from './roborisen_gcube/roborisen_wormbot/roborisen_wormbot.jpg';
+import roborisenWormBotConnectionSmallIconURL from './roborisen_gcube/roborisen_wormbot/roborisen_wormbot-small.png';
+import roborisenCrawlingbotIconURL from './roborisen_gcube/roborisen_crawlingbot/roborisen_crawlingbot.jpg';
+import roborisenCrawlingbotConnectionSmallIconURL from './roborisen_gcube/roborisen_crawlingbot/roborisen_crawlingbot-small.png';
 
 export default [
     {
-        name: (
-            <FormattedMessage
-                defaultMessage="Roborisen G Cube 1"
-                description="Name for the Roborisen G Cube 1 extension"
-                id="gui.extension.roborisen.gcube1.name"
-            />
-        ),
+        name: ("G Cube 1"),
         extensionId: 'gcube1',
+        collaborator: 'Roborisen',
         iconURL: roborisenG1IconURL,
         insetIconURL: roborisenIconeURL,
-        description: (
-            <FormattedMessage
-                defaultMessage="G 큐브 1개를 사용합니다"
-                description="Description for the Roborisen G Cube 1 extension"
-                id="gui.extension.roborisen.gcube1.description"
-            />
-        ),
+        description: ("G 큐브 1개를 사용합니다"),
         featured: true,
         disabled: false,
-        bluetoothRequired: false,
+        bluetoothRequired: true,
         launchPeripheralConnectionFlow: false,
         useAutoScan: false,
         connectionSmallIconURL: roborisenG1ConnectionSmallIconURL,
-        // connectingMessage: (
-        //     <FormattedMessage
-        //         defaultMessage="Connecting..."
-        //         description="Message to help people connect to PingPong."
-        //         id="gui.extension.Roborisen.connectingMessage"
-        //     />
-        // ),
         helpLink: 'https://roborisen.com'
     },
     {
-        name: (
-            <FormattedMessage
-                defaultMessage="Roborisen G Cube 2"
-                description="Name for the Roborisen G Cube 2 extension"
-                id="gui.extension.roborisen.gcube2.name"
-            />
-        ),
+        name: ("G Cube 2"),
         extensionId: 'gcube2',
+        collaborator: 'Roborisen',
         iconURL: roborisenG2IconURL,
         insetIconURL: roborisenIconeURL,
-        description: (
-            <FormattedMessage
-                defaultMessage="G 큐브 2개를 사용합니다"
-                description="Description for the Roborisen G Cube 2 extension"
-                id="gui.extension.roborisen.gcube2.description"
-            />
-        ),
+        description: ("G 큐브 2개를 사용합니다"),
         featured: true,
         disabled: false,
-        bluetoothRequired: false,
+        bluetoothRequired: true,
         launchPeripheralConnectionFlow: false,
         useAutoScan: false,
         connectionSmallIconURL: roborisenG2ConnectionSmallIconURL,
-        // connectingMessage: (
-        //     <FormattedMessage
-        //         defaultMessage="Connecting..."
-        //         description="Message to help people connect to PingPong."
-        //         id="gui.extension.Roborisen.connectingMessage"
-        //     />
-        // ),
+        helpLink: 'https://roborisen.com'
+    },
+    {
+        name: ("G Cube 3"),
+        extensionId: 'gcube3',
+        collaborator: 'Roborisen',
+        iconURL: roborisenG3IconURL,
+        insetIconURL: roborisenIconeURL,
+        description: ("G 큐브 3개를 사용합니다"),
+        featured: true,
+        disabled: false,
+        bluetoothRequired: true,
+        launchPeripheralConnectionFlow: false,
+        useAutoScan: false,
+        connectionSmallIconURL: roborisenG3ConnectionSmallIconURL,
+        helpLink: 'https://roborisen.com'
+    },
+    {
+        name: ("G Cube 4"),
+        extensionId: 'gcube4',
+        collaborator: 'Roborisen',
+        iconURL: roborisenG4IconURL,
+        insetIconURL: roborisenIconeURL,
+        description: ("G 큐브 4개를 사용합니다"),
+        featured: true,
+        disabled: false,
+        bluetoothRequired: true,
+        launchPeripheralConnectionFlow: false,
+        useAutoScan: false,
+        connectionSmallIconURL: roborisenG4ConnectionSmallIconURL,
+        helpLink: 'https://roborisen.com'
+    },
+    {
+        name: ("Worm Bot"),
+        extensionId: 'wormBot',
+        collaborator: 'Roborisen',
+        iconURL: roborisenWormBotIconURL,
+        insetIconURL: roborisenIconeURL,
+        description: ("G 큐브 2개를 사용합니다"),
+        featured: true,
+        disabled: false,
+        bluetoothRequired: true,
+        launchPeripheralConnectionFlow: false,
+        useAutoScan: false,
+        connectionSmallIconURL: roborisenWormBotConnectionSmallIconURL,
+        helpLink: 'https://roborisen.com'
+    },
+    {
+        name: ("Crawling Bot"),
+        extensionId: 'crawlingBot',
+        collaborator: 'Roborisen',
+        iconURL: roborisenCrawlingbotIconURL,
+        insetIconURL: roborisenIconeURL,
+        description: ("G 큐브 4개를 사용합니다"),
+        featured: true,
+        disabled: false,
+        bluetoothRequired: true,
+        launchPeripheralConnectionFlow: false,
+        useAutoScan: false,
+        connectionSmallIconURL: roborisenCrawlingbotConnectionSmallIconURL,
         helpLink: 'https://roborisen.com'
     },
     {
