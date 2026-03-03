@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.18](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.17...v5.2.18) (2026-03-03)
+
+
+### Bug Fixes
+
+* **deps:** update dependency scratch-webpack-configuration to v3.1.2 ([7662cf4](https://github.com/scratchfoundation/scratch-gui/commit/7662cf409d0993f22b85fc3821dc0e97c38757b9))
+
 ## [5.2.17](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.16...v5.2.17) (2026-01-22)
 
 
