@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.20](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.19...v5.2.20) (2026-04-03)
+
+
+### Bug Fixes
+
+* **deps:** update dependency scratch-audio to v2.0.268 ([c3f8644](https://github.com/scratchfoundation/scratch-gui/commit/c3f8644504dbe8b1349f806a7acfd2142c6256e5))
+
 ## [5.2.19](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.18...v5.2.19) (2026-04-03)
 
 
