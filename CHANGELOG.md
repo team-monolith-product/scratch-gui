@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.19](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.18...v5.2.19) (2026-04-03)
+
+
+### Bug Fixes
+
+* **deps:** pin dependencies ([e444790](https://github.com/scratchfoundation/scratch-gui/commit/e4447900771591ff8ca68ec72c91387e9abc7e3f))
+
 ## [5.2.18](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.17...v5.2.18) (2026-03-03)
 
 
