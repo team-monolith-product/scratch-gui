@@ -82,7 +82,7 @@
     "react-virtualized": "^9.20.1",
     "redux": "^3.7.2",
     "redux-throttle": "^0.1.1",
-    "scratch-audio": "2.0.265",
+    "scratch-audio": "2.0.268",
     "scratch-blocks": "1.2.5",
     "scratch-l10n": "5.0.309",
     "scratch-paint": "3.0.339",
