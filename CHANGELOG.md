@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [5.3.0](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.23...v5.3.0) (2026-04-03)
+
+
+### Features
+
+* **deps:** update dependency scratch-blocks to v1.3.0 ([b2af943](https://github.com/scratchfoundation/scratch-gui/commit/b2af943f33de5071f7d89c8984a160b58b13ee87))
+
 ## [5.2.23](https://github.com/scratchfoundation/scratch-gui/compare/v5.2.22...v5.2.23) (2026-04-03)
 
 
