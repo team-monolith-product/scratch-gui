@@ -22,6 +22,7 @@ const START_MANUAL_UPDATING = 'scratch-gui/project-state/START_MANUAL_UPDATING';
 const START_REMIXING = 'scratch-gui/project-state/START_REMIXING';
 const START_UPDATING_BEFORE_CREATING_COPY = 'scratch-gui/project-state/START_UPDATING_BEFORE_CREATING_COPY';
 const START_UPDATING_BEFORE_CREATING_NEW = 'scratch-gui/project-state/START_UPDATING_BEFORE_CREATING_NEW';
+const RELOAD_PROJECT = 'scratch-gui/project-state/RELOAD_PROJECT';
 
 const defaultProjectId = '0'; // hardcoded id of default project
 
@@ -77,6 +78,9 @@ const getIsAnyCreatingNewState = loadingState => (
 );
 const getIsCreatingCopy = loadingState => (
     loadingState === LoadingState.CREATING_COPY
+);
+const getIsAutoUpdating = loadingState => (
+    loadingState === LoadingState.AUTO_UPDATING
 );
 const getIsManualUpdating = loadingState => (
     loadingState === LoadingState.MANUAL_UPDATING
@@ -216,6 +220,16 @@ const reducer = function (state, action) {
         }
         return Object.assign({}, state, {
             loadingState: LoadingState.SHOWING_WITH_ID
+        });
+    case RELOAD_PROJECT:
+        if (state.projectId === null || state.projectId === defaultProjectId) {
+            return Object.assign({}, state, {
+                loadingState: LoadingState.FETCHING_NEW_DEFAULT,
+                projectId: defaultProjectId
+            });
+        }
+        return Object.assign({}, state, {
+            loadingState: LoadingState.FETCHING_WITH_ID
         });
     case SET_PROJECT_ID:
         // if the projectId hasn't actually changed do nothing
@@ -470,6 +484,10 @@ const setProjectId = id => ({
     projectId: id
 });
 
+const reloadProject = () => ({
+    type: RELOAD_PROJECT
+});
+
 const requestNewProject = needSave => {
     if (needSave) return {type: START_UPDATING_BEFORE_CREATING_NEW};
     return {type: START_FETCHING_NEW};
@@ -523,6 +541,7 @@ export {
     getIsLoading,
     getIsLoadingWithId,
     getIsLoadingUpload,
+    getIsAutoUpdating,
     getIsManualUpdating,
     getIsRemixing,
     getIsShowingProject,
@@ -534,6 +553,7 @@ export {
     onLoadedProject,
     projectError,
     remixProject,
+    reloadProject,
     requestNewProject,
     requestProjectUpload,
     saveProjectAsCopy,

@@ -2,6 +2,22 @@ import computedStyleToInlineStyle from 'computed-style-to-inline-style';
 import ScratchBlocks from 'scratch-blocks';
 
 /**
+ * Remove &nbsp; entities from an SVG element.
+ * @param {Element} svgElement - The SVG element to remove &nbsp; entities from.
+ */
+const removeNbsp = function (svgElement) {
+    svgElement.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE) {
+            // replace all &nbsp; with space
+            child.nodeValue = child.nodeValue.replace(/\u00A0/g, ' ');
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+            // recursively remove &nbsp; from children
+            removeNbsp(child);
+        }
+    });
+};
+
+/**
  * Given a blockId, return a data-uri image that can be used to create a thumbnail.
  * @param {string} blockId the ID of the block to imagify
  * @return {Promise} resolves to a data-url of a picture of the blocks
@@ -16,7 +32,7 @@ export default function (blockId) {
     return new Promise(resolve => {
         setTimeout(() => {
             // Strip &nbsp; entities that cannot be inlined
-            blockSvg.innerHTML = blockSvg.innerHTML.replace(/&nbsp;/g, ' ');
+            removeNbsp(blockSvg);
 
             // Create an <svg> element to put the cloned blockSvg inside
             const NS = 'http://www.w3.org/2000/svg';

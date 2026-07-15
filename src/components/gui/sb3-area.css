@@ -1,0 +1,78 @@
+@import "../../css/units.css";
+@import "../../css/colors.css";
+@import "../../css/z-index.css";
+
+.sb3-area {
+    display: flex;
+    align-items: center;
+}
+
+.sb3-area-seperator {
+    width: 1px;
+    height: 16px;
+
+    opacity: 0.5;
+    background: rgba(0, 0, 0, 0.15);
+
+    margin: 0 8px 0 4px;
+}
+
+.sb3-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.sb3-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+}
+
+.sb3-button-left {
+    display: flex;
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 4px 0px 0px 4px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    background: #fff;
+
+    >div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.sb3-button-right {
+    display: flex;
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 0px 4px 4px 0px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    border-right: 1px solid rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    background: #fff;
+
+    >div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.sb3-button-icon {
+    width: 100%;
+    height: 100%;
+}

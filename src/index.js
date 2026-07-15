@@ -4,9 +4,11 @@ import GuiReducer, {guiInitialState, guiMiddleware, initEmbedded, initFullScreen
 import LocalesReducer, {localesInitialState, initLocale} from './reducers/locales';
 import {ScratchPaintReducer} from 'scratch-paint';
 import {setFullScreen, setPlayer} from './reducers/mode';
-import {remixProject} from './reducers/project-state';
+import {remixProject, reloadProject, manualUpdateProject} from './reducers/project-state';
 import {setAppElement} from 'react-modal';
 import {activateDeck} from './reducers/cards.js';
+import ProjectIdUpdatorHOC from './codle/project-id-updator-hoc.jsx';
+import SB3Downloader from './containers/sb3-downloader.jsx';
 
 const guiReducers = {
     locales: LocalesReducer,
@@ -17,6 +19,7 @@ const guiReducers = {
 export {
     GUI as default,
     AppStateHOC,
+    ProjectIdUpdatorHOC,
     setAppElement,
     guiReducers,
     guiInitialState,
@@ -27,7 +30,10 @@ export {
     initLocale,
     localesInitialState,
     remixProject,
+    reloadProject,
+    manualUpdateProject,
     setFullScreen,
     setPlayer,
-    activateDeck
+    activateDeck,
+    SB3Downloader
 };
