@@ -24,10 +24,6 @@ const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme, overwrite) =>
     collectDefinitions(categoryInfo.menus);
     collectDefinitions(categoryInfo.blocks);
 
-    // The public serializer can be called repeatedly while the editor is open.
-    // Avoid Blockly's duplicate-definition warning in that case. Dynamic
-    // definitions are assigned below because they close over the current
-    // extension metadata and do not use defineBlocksWithJsonArray.
     const definitionsToRegister = overwrite ? staticBlocksJson : staticBlocksJson.filter(blockJson => (
         blockJson.type && !ScratchBlocks.Blocks[blockJson.type]
     ));

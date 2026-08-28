@@ -445,7 +445,6 @@ class Blocks extends React.Component {
         }
     }
     handleBlocksInfoUpdate (categoryInfo) {
-        // Re-register updated definitions so the visible workspace follows the VM metadata.
         this.handleExtensionAdded(categoryInfo);
     }
     handleCategorySelected (categoryId) {

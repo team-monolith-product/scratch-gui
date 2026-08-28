@@ -20,6 +20,16 @@ const fieldText = (ScratchBlocks, field) => {
         `[${text}]` : text;
 };
 
+const stackToText = (ScratchBlocks, firstBlock, serializeBlock) => {
+    const lines = [];
+    const visited = new Set();
+    for (let block = firstBlock; block && !visited.has(block.id); block = block.getNextBlock()) {
+        visited.add(block.id);
+        lines.push(serializeBlock(ScratchBlocks, block));
+    }
+    return lines.join('\n');
+};
+
 const blockToText = (ScratchBlocks, block, wrap = true) => {
     const segments = [];
     let parts = [];
@@ -29,8 +39,7 @@ const blockToText = (ScratchBlocks, block, wrap = true) => {
             const child = input.connection && input.connection.targetBlock();
             segments.push({
                 parts,
-                // eslint-disable-next-line no-use-before-define
-                body: stackToText(ScratchBlocks, child)
+                body: stackToText(ScratchBlocks, child, blockToText)
             });
             parts = [];
             return;
@@ -70,16 +79,6 @@ const blockToText = (ScratchBlocks, block, wrap = true) => {
     }).join('\n');
 };
 
-const stackToText = (ScratchBlocks, firstBlock) => {
-    const lines = [];
-    const visited = new Set();
-    for (let block = firstBlock; block && !visited.has(block.id); block = block.getNextBlock()) {
-        visited.add(block.id);
-        lines.push(blockToText(ScratchBlocks, block));
-    }
-    return lines.join('\n');
-};
-
 const workspaceXml = (target, stage) => {
     const globalVariables = stage && stage.variables ?
         Object.keys(stage.variables).map(id => stage.variables[id].toXML()) : [];
@@ -114,7 +113,7 @@ const serializeTarget = (ScratchBlocks, target, stage) => {
                 const firstBlock = workspace.getBlockById(firstBlockId);
                 return {
                     firstBlockId,
-                    text: firstBlock ? stackToText(ScratchBlocks, firstBlock) : ''
+                    text: firstBlock ? stackToText(ScratchBlocks, firstBlock, blockToText) : ''
                 };
             })
         };
@@ -123,21 +122,14 @@ const serializeTarget = (ScratchBlocks, target, stage) => {
     }
 };
 
-/**
- * Convert the VM's project blocks into the text representation used by the
- * Scratch GUI. Blockly objects and workspaces never cross this API boundary.
- *
- * @param {VirtualMachine} vm The VM containing the project to serialize.
- * @return {object} Plain project block text data.
- * @throws {TypeError} If the VM does not have a runtime.
- */
-export default function serializeProjectBlocks (vm) {
+const serializeProjectBlocks = vm => {
     if (!vm || !vm.runtime) {
         throw new TypeError('serializeProjectBlocks requires a VM with a runtime');
     }
 
     const locale = (vm.getLocale && vm.getLocale()) || 'en';
-    const ScratchBlocks = VMScratchBlocks(vm, false, {locale});
+    const ScratchBlocks = VMScratchBlocks(vm, false);
+    ScratchBlocks.ScratchMsgs.setLocale(locale);
     registerRuntimeExtensionBlocks(ScratchBlocks, vm.runtime);
 
     const stage = vm.runtime.getTargetForStage();
@@ -149,4 +141,6 @@ export default function serializeProjectBlocks (vm) {
             ...serializeTarget(ScratchBlocks, target, stage)
         }))
     };
-}
+};
+
+export default serializeProjectBlocks;
