@@ -4,6 +4,7 @@ import SeleniumHelper from '../helpers/selenium-helper';
 const {
     clickText,
     elementIsVisible,
+    findByText,
     findByXpath,
     getDriver,
     getLogs,
@@ -40,7 +41,8 @@ describe('Working with the how-to library', () => {
         const backpackHeader = await findByXpath('//div[contains(@class, "backpack_backpack-header")]');
         await elementIsVisible(backpackHeader);
         await backpackHeader.click();
-        await clickText('Backpack is empty'); // Make sure it can expand, is empty
+        const emptyBackpack = await findByText('Backpack is empty');
+        await elementIsVisible(emptyBackpack); // Make sure it can expand, is empty
         const logs = await getLogs();
         await expect(logs).toEqual([]);
     });
