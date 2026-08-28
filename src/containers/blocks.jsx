@@ -17,9 +17,9 @@ import errorBoundaryHOC from '../lib/error-boundary-hoc.jsx';
 import {BLOCKS_DEFAULT_SCALE, STAGE_DISPLAY_SIZES} from '../lib/layout-constants';
 import DropAreaHOC from '../lib/drop-area-hoc.jsx';
 import DragConstants from '../lib/drag-constants';
-import defineDynamicBlock from '../lib/define-dynamic-block';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
-import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
+import {injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
+import {registerExtensionBlocks} from '../lib/register-extension-blocks';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -434,39 +434,9 @@ class Blocks extends React.Component {
         }
     }
     handleExtensionAdded (categoryInfo) {
-        const defineBlocks = blockInfoArray => {
-            if (blockInfoArray && blockInfoArray.length > 0) {
-                const staticBlocksJson = [];
-                const dynamicBlocksInfo = [];
-                blockInfoArray.forEach(blockInfo => {
-                    if (blockInfo.info && blockInfo.info.isDynamic) {
-                        dynamicBlocksInfo.push(blockInfo);
-                    } else if (blockInfo.json) {
-                        staticBlocksJson.push(injectExtensionBlockTheme(blockInfo.json, this.props.theme));
-                    }
-                    // otherwise it's a non-block entry such as '---'
-                });
-
-                this.ScratchBlocks.defineBlocksWithJsonArray(staticBlocksJson);
-                dynamicBlocksInfo.forEach(blockInfo => {
-                    // This is creating the block factory / constructor -- NOT a specific instance of the block.
-                    // The factory should only know static info about the block: the category info and the opcode.
-                    // Anything else will be picked up from the XML attached to the block instance.
-                    const extendedOpcode = `${categoryInfo.id}_${blockInfo.info.opcode}`;
-                    const blockDefinition =
-                        defineDynamicBlock(this.ScratchBlocks, categoryInfo, blockInfo, extendedOpcode);
-                    this.ScratchBlocks.Blocks[extendedOpcode] = blockDefinition;
-                });
-            }
-        };
-
         // scratch-blocks implements a menu or custom field as a special kind of block ("shadow" block)
         // these actually define blocks and MUST run regardless of the UI state
-        defineBlocks(
-            Object.getOwnPropertyNames(categoryInfo.customFieldTypes)
-                .map(fieldTypeName => categoryInfo.customFieldTypes[fieldTypeName].scratchBlocksDefinition));
-        defineBlocks(categoryInfo.menus);
-        defineBlocks(categoryInfo.blocks);
+        registerExtensionBlocks(this.ScratchBlocks, categoryInfo, this.props.theme);
 
         // Update the toolbox with new blocks if possible
         const toolboxXML = this.getToolboxXML();
@@ -475,7 +445,7 @@ class Blocks extends React.Component {
         }
     }
     handleBlocksInfoUpdate (categoryInfo) {
-        // @todo Later we should replace this to avoid all the warnings from redefining blocks.
+        // Re-register updated definitions so the visible workspace follows the VM metadata.
         this.handleExtensionAdded(categoryInfo);
     }
     handleCategorySelected (categoryId) {

@@ -2,10 +2,14 @@
  * Connect scratch blocks with the vm
  * @param {VirtualMachine} vm - The scratch vm
  * @param {Bool} useCatBlocks - Whether to use cat blocks rendering of ScratchBlocks
+ * @param {object} options - Optional block initialization options
  * @return {ScratchBlocks} ScratchBlocks connected with the vm
  */
-export default function (vm, useCatBlocks) {
+export default function (vm, useCatBlocks, options = {}) {
     const ScratchBlocks = useCatBlocks ? require('cat-blocks') : require('scratch-blocks');
+    if (options.locale) {
+        ScratchBlocks.ScratchMsgs.setLocale(options.locale);
+    }
     const jsonForMenuBlock = function (name, menuOptionsFn, colors, start) {
         return {
             message0: '%1',
@@ -259,8 +263,8 @@ export default function (vm, useCatBlocks) {
                     // The block was in the flyout so look up future block info there.
                     lookupBlocks = vm.runtime.flyoutBlocks;
                 }
-                const sort = function (options) {
-                    options.sort(ScratchBlocks.scratchBlocksUtils.compareStrings);
+                const sort = function (sortOptions) {
+                    sortOptions.sort(ScratchBlocks.scratchBlocksUtils.compareStrings);
                 };
                 // Get all the stage variables (no lists) so we can add them to menu when the stage is selected.
                 const stageVariableOptions = vm.runtime.getTargetForStage().getAllVariableNamesInScopeByType('');
