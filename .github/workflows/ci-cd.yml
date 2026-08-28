@@ -147,7 +147,7 @@ jobs:
                 path: ./dist
     test-integration:
         needs: build
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         env:
             JEST_JUNIT_OUTPUT_NAME: results.txt
             JEST_JUNIT_OUTPUT_DIR: test-results/integration
@@ -156,7 +156,15 @@ jobs:
             - name: Install Chrome Dependencies
               run: |
                 sudo apt-get update
-                sudo apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2
+                sudo apt-get install -y \
+                    libatk1.0-0 \
+                    libatk-bridge2.0-0 \
+                    libgdk-pixbuf2.0-0 \
+                    libgtk-3-0 \
+                    libgbm-dev \
+                    libnss3-dev \
+                    libxss-dev \
+                    libasound2t64
             - name: Retrieve npm dependencies
               uses: actions/cache@v4
               with:
