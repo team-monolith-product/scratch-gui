@@ -76,6 +76,11 @@ describe('Localization', () => {
         await loadUri(`${uri}?locale=ja`);
         await clickText('演算'); // Operators category in Japanese
         await new Promise(resolve => setTimeout(resolve, 1000)); // wait for blocks to scroll
+        const flyout = await findByXpath('//g[contains(@class, "blocklyFlyout")]');
+        await driver.executeScript(
+            'arguments[0].dispatchEvent(new WheelEvent("wheel", {deltaY: 300}));',
+            flyout
+        );
         await clickText('の長さ', scope.blocksTab); // Click "length <apple>" block
         await findByText('3', scope.reportedValue); // Tooltip with result
         const logs = await getLogs();

@@ -62,7 +62,6 @@ class SeleniumHelper {
             'findByText',
             'textToXpath',
             'findByXpath',
-            'findVisibleByXpath',
             'textExists',
             'getDriver',
             'getSauceDriver',
@@ -191,29 +190,6 @@ class SeleniumHelper {
     }
 
     /**
-     * Find the first visible element matching an xpath.
-     * @param {string} xpath The xpath to search for.
-     * @returns {Promise<webdriver.WebElement>} A promise that resolves to a visible element.
-     */
-    async findVisibleByXpath (xpath) {
-        const outerError = new Error(`findVisibleByXpath failed with arguments:\n\txpath: ${xpath}`);
-        try {
-            await this.setTitle(`findVisibleByXpath ${xpath}`);
-            return await this.driver.wait(async () => {
-                const elements = await this.driver.findElements(By.xpath(xpath));
-                for (const element of elements) {
-                    if (await element.isDisplayed()) {
-                        return element;
-                    }
-                }
-                return false;
-            }, DEFAULT_TIMEOUT_MILLISECONDS);
-        } catch (cause) {
-            throw await enhanceError(outerError, cause, this.driver);
-        }
-    }
-
-    /**
      * Generate an xpath that finds an element by its text.
      * @param {string} text The text to search for.
      * @param {string} [scope] An optional xpath scope to search within.
@@ -285,7 +261,7 @@ class SeleniumHelper {
         const outerError = new Error(`clickXpath failed with arguments:\n\txpath: ${xpath}`);
         try {
             await this.setTitle(`clickXpath ${xpath}`);
-            const el = await this.findVisibleByXpath(xpath);
+            const el = await this.findByXpath(xpath);
             return el.click();
         } catch (cause) {
             throw await enhanceError(outerError, cause, this.driver);
@@ -302,7 +278,7 @@ class SeleniumHelper {
         const outerError = new Error(`clickText failed with arguments:\n\ttext: ${text}\n\tscope: ${scope}`);
         try {
             await this.setTitle(`clickText ${text}`);
-            const el = await this.findVisibleByXpath(this.textToXpath(text, scope));
+            const el = await this.findByText(text, scope);
             return el.click();
         } catch (cause) {
             throw await enhanceError(outerError, cause, this.driver);
