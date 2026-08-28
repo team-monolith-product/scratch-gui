@@ -128,13 +128,13 @@ jobs:
               with:
                 path: 
                     ./build
-                key: ${{ runner.os }}-build-${{ github.sha }}
+                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
             - name: Cache Dist Directory
               uses: actions/cache@v4
               with:
                 path: 
                     ./dist
-                key: ${{ runner.os }}-dist-${{ github.sha }}
+                key: ${{ runner.os }}-dist-${{ hashFiles('package-lock.json') }}
             - name: Store Build Output
               uses: actions/upload-artifact@v4
               with:
@@ -176,7 +176,7 @@ jobs:
               with:
                 path: 
                     ./build
-                key: ${{ runner.os }}-build-${{ github.sha }}
+                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
             - uses: browser-actions/setup-chrome@v1
               with:
                 chrome-version: stable
@@ -208,7 +208,7 @@ jobs:
               with:
                 path: 
                     ./dist
-                key: ${{ runner.os }}-dist-${{ github.sha }}
+                key: ${{ runner.os }}-dist-${{ hashFiles('package-lock.json') }}
             - run: |
                 if [[ ${{contains(github.ref, 'hotfix')}}  ]]; then
                 sed -e "s|hotfix/REPLACE|${{ github.ref_name }}|" --in-place release.config.js
@@ -236,7 +236,7 @@ jobs:
               with:
                 path: 
                     ./build
-                key: ${{ runner.os }}-build-${{ github.sha }}
+                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
             - name: Deploy playground to GitHub Pages
               
               uses: peaceiris/actions-gh-pages@v4
