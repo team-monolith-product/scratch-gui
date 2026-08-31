@@ -20,10 +20,7 @@ import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
 import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
-import {
-    registerProjectSerializerContext,
-    unregisterProjectSerializerContext
-} from '../lib/serialize-project-blocks';
+import serializeProjectBlocks from '../lib/serialize-project-blocks';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -109,7 +106,11 @@ class Blocks extends React.Component {
             {rtl: this.props.isRtl, toolbox: this.props.toolboxXML, colours: getColorsForTheme(this.props.theme)}
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
-        registerProjectSerializerContext(this.props.vm, this.ScratchBlocks);
+        const vm = this.props.vm;
+        const ScratchBlocks = this.ScratchBlocks;
+        this.releaseProjectSerializer = this.props.onProjectSerializerReady(
+            () => serializeProjectBlocks(vm, ScratchBlocks)
+        );
 
         // Register buttons under new callback keys for creating variables,
         // lists, and procedures from extensions.
@@ -201,7 +202,7 @@ class Blocks extends React.Component {
         }
     }
     componentWillUnmount () {
-        unregisterProjectSerializerContext(this.props.vm, this.ScratchBlocks);
+        this.releaseProjectSerializer();
         this.detachVM();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
@@ -629,6 +630,7 @@ Blocks.propTypes = {
     onActivateCustomProcedures: PropTypes.func,
     onOpenConnectionModal: PropTypes.func,
     onOpenSoundRecorder: PropTypes.func,
+    onProjectSerializerReady: PropTypes.func,
     onRequestCloseCustomProcedures: PropTypes.func,
     onRequestCloseExtensionLibrary: PropTypes.func,
     options: PropTypes.shape({
@@ -671,6 +673,7 @@ Blocks.defaultOptions = {
 
 Blocks.defaultProps = {
     isVisible: true,
+    onProjectSerializerReady: () => () => {},
     options: Blocks.defaultOptions,
     theme: DEFAULT_THEME
 };

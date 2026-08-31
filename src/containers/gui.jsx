@@ -124,6 +124,7 @@ GUI.propTypes = {
     isTotallyNormal: PropTypes.bool,
     loadingStateVisible: PropTypes.bool,
     onProjectLoaded: PropTypes.func,
+    onProjectSerializerReady: PropTypes.func,
     onSeeCommunity: PropTypes.func,
     onStorageInit: PropTypes.func,
     onUpdateProjectId: PropTypes.func,

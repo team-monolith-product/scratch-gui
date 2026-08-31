@@ -8,7 +8,6 @@ import {remixProject, reloadProject, manualUpdateProject} from './reducers/proje
 import {setAppElement} from 'react-modal';
 import ProjectIdUpdatorHOC from './codle/project-id-updator-hoc.jsx';
 import SB3Downloader from './containers/sb3-downloader.jsx';
-import serializeProjectBlocks from './lib/serialize-project-blocks';
 
 const guiReducers = {
     locales: LocalesReducer,
@@ -34,6 +33,5 @@ export {
     manualUpdateProject,
     setFullScreen,
     setPlayer,
-    SB3Downloader,
-    serializeProjectBlocks
+    SB3Downloader
 };

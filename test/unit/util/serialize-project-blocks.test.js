@@ -3,10 +3,7 @@ import ScratchBlocks from 'scratch-blocks';
 import editorMessages from 'scratch-l10n/locales/editor-msgs';
 
 import VMScratchBlocks from '../../../src/lib/blocks';
-import serializeProjectBlocks, {
-    registerProjectSerializerContext,
-    unregisterProjectSerializerContext
-} from '../../../src/lib/serialize-project-blocks';
+import serializeProjectBlocks from '../../../src/lib/serialize-project-blocks';
 
 const numberInput = value => [1, [4, value]];
 const textInput = value => [1, [10, value]];
@@ -81,12 +78,7 @@ const loadAndSerialize = async (project, locale = 'en') => {
     await vm.loadProject(project);
     configuredScratchBlocks.ScratchMsgs.setLocale(locale);
     await vm.setLocale(locale, editorMessages[locale]);
-    registerProjectSerializerContext(vm, configuredScratchBlocks);
-    try {
-        return serializeProjectBlocks(vm);
-    } finally {
-        unregisterProjectSerializerContext(vm, configuredScratchBlocks);
-    }
+    return serializeProjectBlocks(vm, configuredScratchBlocks);
 };
 
 describe('serializeProjectBlocks', () => {
@@ -373,15 +365,10 @@ describe('serializeProjectBlocks', () => {
         await vm.loadProject(createProject());
         configuredScratchBlocks.ScratchMsgs.setLocale('en');
         await vm.setLocale('en', editorMessages.en);
-        registerProjectSerializerContext(vm, configuredScratchBlocks);
         const soundMenuInitializer = configuredScratchBlocks.Blocks.sound_sounds_menu.init;
         const locale = configuredScratchBlocks.ScratchMsgs.currentLocale_;
 
-        try {
-            serializeProjectBlocks(vm);
-        } finally {
-            unregisterProjectSerializerContext(vm, configuredScratchBlocks);
-        }
+        serializeProjectBlocks(vm, configuredScratchBlocks);
 
         expect(configuredScratchBlocks.Blocks.sound_sounds_menu.init).toBe(soundMenuInitializer);
         expect(configuredScratchBlocks.ScratchMsgs.currentLocale_).toBe(locale);
@@ -426,9 +413,10 @@ describe('serializeProjectBlocks', () => {
         expect(() => serializeProjectBlocks({})).toThrow(TypeError);
     });
 
-    test('rejects a VM without a registered GUI serialization context', () => {
+    test('rejects serialization without the GUI ScratchBlocks dependency', () => {
         const vm = new VM();
 
-        expect(() => serializeProjectBlocks(vm)).toThrow(/mounted Blocks workspace/);
+        expect(() => serializeProjectBlocks(vm)).toThrow(TypeError);
+        expect(() => serializeProjectBlocks(vm)).toThrow(/ScratchBlocks/);
     });
 });

@@ -2,17 +2,6 @@ import editorMessages from 'scratch-l10n/locales/editor-msgs';
 
 const EMPTY_INPUT_MESSAGE = 'gui.monitor.listMonitor.empty';
 const SIGNATURE_INPUT = 'custom_block';
-const serializerContexts = new WeakMap();
-
-export const registerProjectSerializerContext = (vm, ScratchBlocks) => {
-    serializerContexts.set(vm, ScratchBlocks);
-};
-
-export const unregisterProjectSerializerContext = (vm, ScratchBlocks) => {
-    if (serializerContexts.get(vm) === ScratchBlocks) {
-        serializerContexts.delete(vm);
-    }
-};
 
 const emptyInputText = locale => {
     const messages = editorMessages[locale] || editorMessages.en || {};
@@ -149,14 +138,13 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
     }
 };
 
-const serializeProjectBlocks = vm => {
+const serializeProjectBlocks = (vm, ScratchBlocks) => {
     if (!vm || !vm.runtime) {
         throw new TypeError('serializeProjectBlocks requires a VM with a runtime');
     }
 
-    const ScratchBlocks = serializerContexts.get(vm);
-    if (!ScratchBlocks) {
-        throw new Error('serializeProjectBlocks requires a mounted Blocks workspace');
+    if (!ScratchBlocks || !ScratchBlocks.Workspace || !ScratchBlocks.Xml) {
+        throw new TypeError('serializeProjectBlocks requires the GUI ScratchBlocks instance');
     }
 
     const stage = vm.runtime.getTargetForStage();
