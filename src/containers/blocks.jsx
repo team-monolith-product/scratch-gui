@@ -20,6 +20,10 @@ import DragConstants from '../lib/drag-constants';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
 import {injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
 import {registerExtensionBlocks} from '../lib/register-extension-blocks';
+import {
+    registerProjectSerializerContext,
+    unregisterProjectSerializerContext
+} from '../lib/serialize-project-blocks';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -105,6 +109,7 @@ class Blocks extends React.Component {
             {rtl: this.props.isRtl, toolbox: this.props.toolboxXML, colours: getColorsForTheme(this.props.theme)}
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
+        registerProjectSerializerContext(this.props.vm, this.ScratchBlocks);
 
         // Register buttons under new callback keys for creating variables,
         // lists, and procedures from extensions.
@@ -196,6 +201,7 @@ class Blocks extends React.Component {
         }
     }
     componentWillUnmount () {
+        unregisterProjectSerializerContext(this.props.vm, this.ScratchBlocks);
         this.detachVM();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);

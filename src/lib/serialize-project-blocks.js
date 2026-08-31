@@ -1,8 +1,23 @@
-import VMScratchBlocks from './blocks';
-import {registerRuntimeExtensionBlocks} from './register-extension-blocks';
+import editorMessages from 'scratch-l10n/locales/editor-msgs';
 
-const EMPTY_INPUT = '(빈 칸)';
+const EMPTY_INPUT_MESSAGE = 'gui.monitor.listMonitor.empty';
 const SIGNATURE_INPUT = 'custom_block';
+const serializerContexts = new WeakMap();
+
+export const registerProjectSerializerContext = (vm, ScratchBlocks) => {
+    serializerContexts.set(vm, ScratchBlocks);
+};
+
+export const unregisterProjectSerializerContext = (vm, ScratchBlocks) => {
+    if (serializerContexts.get(vm) === ScratchBlocks) {
+        serializerContexts.delete(vm);
+    }
+};
+
+const emptyInputText = locale => {
+    const messages = editorMessages[locale] || editorMessages.en || {};
+    return messages[EMPTY_INPUT_MESSAGE] || '(empty)';
+};
 
 const isBodyInput = (ScratchBlocks, input) => (
     input.type === ScratchBlocks.NEXT_STATEMENT && input.name !== SIGNATURE_INPUT
@@ -20,17 +35,17 @@ const fieldText = (ScratchBlocks, field) => {
         `[${text}]` : text;
 };
 
-const stackToText = (ScratchBlocks, firstBlock, serializeBlock) => {
+const stackToText = (ScratchBlocks, firstBlock, serializeBlock, emptyInput) => {
     const lines = [];
     const visited = new Set();
     for (let block = firstBlock; block && !visited.has(block.id); block = block.getNextBlock()) {
         visited.add(block.id);
-        lines.push(serializeBlock(ScratchBlocks, block));
+        lines.push(serializeBlock(ScratchBlocks, block, true, emptyInput));
     }
     return lines.join('\n');
 };
 
-const blockToText = (ScratchBlocks, block, wrap = true) => {
+const blockToText = (ScratchBlocks, block, wrap = true, emptyInput) => {
     const segments = [];
     let parts = [];
 
@@ -39,7 +54,7 @@ const blockToText = (ScratchBlocks, block, wrap = true) => {
             const child = input.connection && input.connection.targetBlock();
             segments.push({
                 parts,
-                body: stackToText(ScratchBlocks, child, blockToText)
+                body: stackToText(ScratchBlocks, child, blockToText, emptyInput)
             });
             parts = [];
             return;
@@ -53,10 +68,10 @@ const blockToText = (ScratchBlocks, block, wrap = true) => {
         if (input.connection) {
             const child = input.connection.targetBlock();
             if (!child) {
-                parts.push(EMPTY_INPUT);
+                parts.push(emptyInput);
                 return;
             }
-            parts.push(blockToText(ScratchBlocks, child, !child.isShadow()));
+            parts.push(blockToText(ScratchBlocks, child, !child.isShadow(), emptyInput));
         }
     });
 
@@ -100,7 +115,7 @@ const topBlockIds = blocks => blocks.getScripts().slice()
             coordinate(left, 'x') - coordinate(right, 'x');
     });
 
-const serializeTarget = (ScratchBlocks, target, stage) => {
+const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
     const previousMainWorkspace = ScratchBlocks.mainWorkspace;
     const workspace = new ScratchBlocks.Workspace({
         pathToMedia: previousMainWorkspace ? previousMainWorkspace.options.pathToMedia : ''
@@ -117,7 +132,7 @@ const serializeTarget = (ScratchBlocks, target, stage) => {
                 const firstBlock = workspace.getBlockById(firstBlockId);
                 return {
                     firstBlockId,
-                    text: firstBlock ? stackToText(ScratchBlocks, firstBlock, blockToText) : ''
+                    text: firstBlock ? stackToText(ScratchBlocks, firstBlock, blockToText, emptyInput) : ''
                 };
             })
         };
@@ -135,18 +150,20 @@ const serializeProjectBlocks = vm => {
         throw new TypeError('serializeProjectBlocks requires a VM with a runtime');
     }
 
-    const locale = (vm.getLocale && vm.getLocale()) || 'en';
-    const ScratchBlocks = VMScratchBlocks(vm, false);
-    ScratchBlocks.ScratchMsgs.setLocale(locale);
-    registerRuntimeExtensionBlocks(ScratchBlocks, vm.runtime);
+    const ScratchBlocks = serializerContexts.get(vm);
+    if (!ScratchBlocks) {
+        throw new Error('serializeProjectBlocks requires a mounted Blocks workspace');
+    }
 
     const stage = vm.runtime.getTargetForStage();
     const targets = vm.runtime.targets.filter(target => target.isOriginal);
+    const locale = (vm.getLocale && vm.getLocale()) || 'en';
+    const emptyInput = emptyInputText(locale);
 
     return {
         targets: targets.map((target, index) => ({
             index,
-            ...serializeTarget(ScratchBlocks, target, stage)
+            ...serializeTarget(ScratchBlocks, target, stage, emptyInput)
         }))
     };
 };

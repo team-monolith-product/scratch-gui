@@ -1,7 +1,7 @@
 import defineDynamicBlock from './define-dynamic-block';
 import {injectExtensionBlockTheme} from './themes/blockHelpers';
 
-const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme, overwrite) => {
+const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
     if (!categoryInfo) return;
 
     const staticBlocksJson = [];
@@ -24,11 +24,8 @@ const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme, overwrite) =>
     collectDefinitions(categoryInfo.menus);
     collectDefinitions(categoryInfo.blocks);
 
-    const definitionsToRegister = overwrite ? staticBlocksJson : staticBlocksJson.filter(blockJson => (
-        blockJson.type && !ScratchBlocks.Blocks[blockJson.type]
-    ));
-    if (definitionsToRegister.length > 0) {
-        ScratchBlocks.defineBlocksWithJsonArray(definitionsToRegister);
+    if (staticBlocksJson.length > 0) {
+        ScratchBlocks.defineBlocksWithJsonArray(staticBlocksJson);
     }
 
     dynamicBlocksInfo.forEach(blockInfo => {
@@ -39,12 +36,5 @@ const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme, overwrite) =>
 };
 
 export const registerExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
-    defineExtensionBlocks(ScratchBlocks, categoryInfo, theme, true);
-};
-
-export const registerRuntimeExtensionBlocks = (ScratchBlocks, runtime) => {
-    if (!runtime || !Array.isArray(runtime._blockInfo)) return;
-    runtime._blockInfo.forEach(categoryInfo => {
-        defineExtensionBlocks(ScratchBlocks, categoryInfo, null, false);
-    });
+    defineExtensionBlocks(ScratchBlocks, categoryInfo, theme);
 };
