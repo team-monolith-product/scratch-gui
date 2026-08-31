@@ -3,12 +3,10 @@ import ScratchBlocks from 'scratch-blocks';
 import editorMessages from 'scratch-l10n/locales/editor-msgs';
 
 import VMScratchBlocks from '../../../src/lib/blocks';
-import {registerExtensionBlocks} from '../../../src/lib/register-extension-blocks';
 import serializeProjectBlocks, {
     registerProjectSerializerContext,
     unregisterProjectSerializerContext
 } from '../../../src/lib/serialize-project-blocks';
-import {DEFAULT_THEME} from '../../../src/lib/themes';
 
 const numberInput = value => [1, [4, value]];
 const textInput = value => [1, [10, value]];
@@ -80,9 +78,6 @@ const createProject = ({
 const loadAndSerialize = async (project, locale = 'en') => {
     const vm = new VM();
     const configuredScratchBlocks = VMScratchBlocks(vm, false);
-    vm.on('EXTENSION_ADDED', categoryInfo => {
-        registerExtensionBlocks(configuredScratchBlocks, categoryInfo, DEFAULT_THEME);
-    });
     await vm.loadProject(project);
     configuredScratchBlocks.ScratchMsgs.setLocale(locale);
     await vm.setLocale(locale, editorMessages[locale]);
@@ -265,27 +260,45 @@ describe('serializeProjectBlocks', () => {
     });
 
     test('uses extension definitions already registered by the GUI owner', async () => {
-        const result = await loadAndSerialize(createProject({
-            extensions: ['pen'],
-            spriteBlocks: {
-                penDown: {
-                    opcode: 'pen_penDown',
-                    next: null,
-                    parent: null,
-                    inputs: {},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 10
-                }
-            }
-        }, 'en'));
-
-        expect(result.targets[1].threads).toEqual([{
-            firstBlockId: 'penDown',
-            llmReadyCode: '<pen down>'
+        const previousDefinition = ScratchBlocks.Blocks.pen_penDown;
+        ScratchBlocks.defineBlocksWithJsonArray([{
+            type: 'pen_penDown',
+            message0: 'pen down',
+            args0: [],
+            previousStatement: null,
+            nextStatement: null,
+            colour: '#0fbd8c'
         }]);
+
+        try {
+            const result = await loadAndSerialize(createProject({
+                extensions: ['pen'],
+                spriteBlocks: {
+                    penDown: {
+                        opcode: 'pen_penDown',
+                        next: null,
+                        parent: null,
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: true,
+                        x: 10,
+                        y: 10
+                    }
+                }
+            }, 'en'));
+
+            expect(result.targets[1].threads).toEqual([{
+                firstBlockId: 'penDown',
+                llmReadyCode: '<pen down>'
+            }]);
+        } finally {
+            if (previousDefinition) {
+                ScratchBlocks.Blocks.pen_penDown = previousDefinition;
+            } else {
+                delete ScratchBlocks.Blocks.pen_penDown;
+            }
+        }
     });
 
     test('serializes a custom procedure signature, body and call', async () => {
