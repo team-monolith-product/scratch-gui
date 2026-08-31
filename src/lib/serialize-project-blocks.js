@@ -101,7 +101,11 @@ const topBlockIds = blocks => blocks.getScripts().slice()
     });
 
 const serializeTarget = (ScratchBlocks, target, stage) => {
-    const workspace = new ScratchBlocks.Workspace();
+    const previousMainWorkspace = ScratchBlocks.mainWorkspace;
+    const workspace = new ScratchBlocks.Workspace({
+        pathToMedia: previousMainWorkspace ? previousMainWorkspace.options.pathToMedia : ''
+    });
+    ScratchBlocks.mainWorkspace = workspace;
     try {
         const dom = ScratchBlocks.Xml.textToDom(workspaceXml(target, stage));
         ScratchBlocks.Xml.domToWorkspace(dom, workspace);
@@ -118,7 +122,11 @@ const serializeTarget = (ScratchBlocks, target, stage) => {
             })
         };
     } finally {
-        workspace.dispose();
+        try {
+            workspace.dispose();
+        } finally {
+            ScratchBlocks.mainWorkspace = previousMainWorkspace;
+        }
     }
 };
 
