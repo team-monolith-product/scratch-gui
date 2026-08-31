@@ -1,9 +1,7 @@
 import defineDynamicBlock from './define-dynamic-block';
 import {injectExtensionBlockTheme} from './themes/blockHelpers';
 
-const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
-    if (!categoryInfo) return;
-
+export const registerExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
     const staticBlocksJson = [];
     const dynamicBlocksInfo = [];
 
@@ -12,8 +10,7 @@ const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
             if (blockInfo.info && blockInfo.info.isDynamic) {
                 dynamicBlocksInfo.push(blockInfo);
             } else if (blockInfo.json) {
-                staticBlocksJson.push(theme ?
-                    injectExtensionBlockTheme(blockInfo.json, theme) : blockInfo.json);
+                staticBlocksJson.push(injectExtensionBlockTheme(blockInfo.json, theme));
             }
         });
     };
@@ -33,8 +30,4 @@ const defineExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
         ScratchBlocks.Blocks[extendedOpcode] =
             defineDynamicBlock(ScratchBlocks, categoryInfo, blockInfo, extendedOpcode);
     });
-};
-
-export const registerExtensionBlocks = (ScratchBlocks, categoryInfo, theme) => {
-    defineExtensionBlocks(ScratchBlocks, categoryInfo, theme);
 };

@@ -7,15 +7,7 @@ const createScratchBlocks = () => ({
 });
 
 describe('registerExtensionBlocks', () => {
-    test('ignores an empty extension update', () => {
-        const ScratchBlocks = createScratchBlocks();
-
-        registerExtensionBlocks(ScratchBlocks, null, DEFAULT_THEME);
-
-        expect(ScratchBlocks.defineBlocksWithJsonArray).not.toHaveBeenCalled();
-    });
-
-    test('registers themed custom field and menu definitions', () => {
+    test('registers custom field and menu definitions', () => {
         const ScratchBlocks = createScratchBlocks();
         const customField = {type: 'extension_field'};
         const menu = {type: 'extension_menu'};
@@ -44,7 +36,7 @@ describe('registerExtensionBlocks', () => {
             customFieldTypes: {},
             menus: [],
             blocks: [{json: block}]
-        }, null);
+        }, DEFAULT_THEME);
 
         expect(ScratchBlocks.defineBlocksWithJsonArray).toHaveBeenCalledWith([block]);
     });
@@ -68,7 +60,7 @@ describe('registerExtensionBlocks', () => {
                     opcode: 'dynamic'
                 }
             }]
-        }, null);
+        }, DEFAULT_THEME);
 
         expect(ScratchBlocks.Blocks.extension_dynamic).not.toBe(previousDefinition);
         expect(typeof ScratchBlocks.Blocks.extension_dynamic.init).toBe('function');

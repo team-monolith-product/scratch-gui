@@ -3,6 +3,6 @@ export default {
         'gui.monitor.listMonitor.empty': '(empty)'
     },
     ko: {
-        'gui.monitor.listMonitor.empty': '(빈 칸)'
+        'gui.monitor.listMonitor.empty': '(비어 있음)'
     }
 };

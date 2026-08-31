@@ -8,6 +8,7 @@ import serializeProjectBlocks, {
     registerProjectSerializerContext,
     unregisterProjectSerializerContext
 } from '../../../src/lib/serialize-project-blocks';
+import {DEFAULT_THEME} from '../../../src/lib/themes';
 
 const numberInput = value => [1, [4, value]];
 const textInput = value => [1, [10, value]];
@@ -80,7 +81,7 @@ const loadAndSerialize = async (project, locale = 'en') => {
     const vm = new VM();
     const configuredScratchBlocks = VMScratchBlocks(vm, false);
     vm.on('EXTENSION_ADDED', categoryInfo => {
-        registerExtensionBlocks(configuredScratchBlocks, categoryInfo, null);
+        registerExtensionBlocks(configuredScratchBlocks, categoryInfo, DEFAULT_THEME);
     });
     await vm.loadProject(project);
     configuredScratchBlocks.ScratchMsgs.setLocale(locale);
@@ -259,7 +260,7 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'say',
-            text: '<(빈 칸) 말하기>'
+            text: '<(비어 있음) 말하기>'
         }]);
     });
 

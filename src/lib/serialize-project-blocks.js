@@ -35,63 +35,66 @@ const fieldText = (ScratchBlocks, field) => {
         `[${text}]` : text;
 };
 
-const stackToText = (ScratchBlocks, firstBlock, serializeBlock, emptyInput) => {
-    const lines = [];
-    const visited = new Set();
-    for (let block = firstBlock; block && !visited.has(block.id); block = block.getNextBlock()) {
-        visited.add(block.id);
-        lines.push(serializeBlock(ScratchBlocks, block, true, emptyInput));
-    }
-    return lines.join('\n');
-};
+const createBlockTextSerializer = (ScratchBlocks, emptyInput) => {
+    const serializeStack = (firstBlock, wrap = true) => {
+        const lines = [];
+        const visited = new Set();
+        for (let block = firstBlock; block && !visited.has(block.id); block = block.getNextBlock()) {
+            visited.add(block.id);
+            const segments = [];
+            let parts = [];
 
-const blockToText = (ScratchBlocks, block, wrap = true, emptyInput) => {
-    const segments = [];
-    let parts = [];
+            block.inputList.forEach(input => {
+                if (isBodyInput(ScratchBlocks, input)) {
+                    const child = input.connection && input.connection.targetBlock();
+                    segments.push({
+                        parts,
+                        body: serializeStack(child)
+                    });
+                    parts = [];
+                    return;
+                }
 
-    block.inputList.forEach(input => {
-        if (isBodyInput(ScratchBlocks, input)) {
-            const child = input.connection && input.connection.targetBlock();
-            segments.push({
-                parts,
-                body: stackToText(ScratchBlocks, child, blockToText, emptyInput)
+                input.fieldRow.forEach(field => {
+                    const text = fieldText(ScratchBlocks, field);
+                    if (text !== null) parts.push(text);
+                });
+
+                if (!input.connection) return;
+
+                const child = input.connection.targetBlock();
+                if (!child) {
+                    parts.push(emptyInput);
+                    return;
+                }
+                parts.push(serializeStack(child, !child.isShadow()));
             });
-            parts = [];
-            return;
-        }
 
-        input.fieldRow.forEach(field => {
-            const text = fieldText(ScratchBlocks, field);
-            if (text !== null) parts.push(text);
-        });
-
-        if (input.connection) {
-            const child = input.connection.targetBlock();
-            if (!child) {
-                parts.push(emptyInput);
-                return;
+            if (parts.length > 0) {
+                segments.push({parts, body: null});
             }
-            parts.push(blockToText(ScratchBlocks, child, !child.isShadow(), emptyInput));
+
+            if (segments.length === 0) {
+                lines.push('<>');
+                continue;
+            }
+
+            lines.push(segments.map((segment, index) => {
+                const head = (index === 0 && wrap) ?
+                    `<${segment.parts.join(' ')}>` : segment.parts.join(' ');
+                if (segment.body === null) return head;
+                if (segment.body === '') return `${head}:`;
+                const body = segment.body
+                    .split('\n')
+                    .map(line => (line === '' ? line : `\t${line}`))
+                    .join('\n');
+                return `${head}:\n${body}`;
+            }).join('\n'));
         }
-    });
+        return lines.join('\n');
+    };
 
-    if (parts.length > 0) {
-        segments.push({parts, body: null});
-    }
-
-    if (segments.length === 0) return '<>';
-
-    return segments.map((segment, index) => {
-        const head = (index === 0 && wrap) ?
-            `<${segment.parts.join(' ')}>` : segment.parts.join(' ');
-        if (segment.body === null) return head;
-        if (segment.body === '') return `${head}:`;
-        const body = segment.body
-            .split('\n')
-            .map(line => (line === '' ? line : `\t${line}`))
-            .join('\n');
-        return `${head}:\n${body}`;
-    }).join('\n');
+    return serializeStack;
 };
 
 const workspaceXml = (target, stage) => {
@@ -124,6 +127,7 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
     try {
         const dom = ScratchBlocks.Xml.textToDom(workspaceXml(target, stage));
         ScratchBlocks.Xml.domToWorkspace(dom, workspace);
+        const serializeBlockStack = createBlockTextSerializer(ScratchBlocks, emptyInput);
 
         return {
             name: target.getName(),
@@ -132,7 +136,7 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
                 const firstBlock = workspace.getBlockById(firstBlockId);
                 return {
                     firstBlockId,
-                    text: firstBlock ? stackToText(ScratchBlocks, firstBlock, blockToText, emptyInput) : ''
+                    text: firstBlock ? serializeBlockStack(firstBlock) : ''
                 };
             })
         };
