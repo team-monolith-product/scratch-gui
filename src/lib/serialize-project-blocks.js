@@ -136,7 +136,7 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
                 const firstBlock = workspace.getBlockById(firstBlockId);
                 return {
                     firstBlockId,
-                    text: firstBlock ? serializeBlockStack(firstBlock) : ''
+                    llmReadyCode: firstBlock ? serializeBlockStack(firstBlock) : ''
                 };
             })
         };

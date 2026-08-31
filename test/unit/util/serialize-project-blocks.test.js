@@ -137,13 +137,13 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'topLeft',
-            text: '<say left>'
+            llmReadyCode: '<say left>'
         }, {
             firstBlockId: 'topRight',
-            text: '<say right>'
+            llmReadyCode: '<say right>'
         }, {
             firstBlockId: 'bottom',
-            text: '<say bottom>'
+            llmReadyCode: '<say bottom>'
         }]);
         expect(ScratchBlocks.mainWorkspace).toBe(previousMainWorkspace);
     });
@@ -230,7 +230,7 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'hat',
-            text: [
+            llmReadyCode: [
                 '<when clicked>',
                 '<repeat 2>:',
                 '\t<move 10 steps>',
@@ -260,7 +260,7 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'say',
-            text: '<(비어 있음) 말하기>'
+            llmReadyCode: '<(비어 있음) 말하기>'
         }]);
     });
 
@@ -284,7 +284,7 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'penDown',
-            text: '<pen down>'
+            llmReadyCode: '<pen down>'
         }]);
     });
 
@@ -347,10 +347,10 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'definition',
-            text: '<define greet>\n<say hello>'
+            llmReadyCode: '<define greet>\n<say hello>'
         }, {
             firstBlockId: 'call',
-            text: '<greet>'
+            llmReadyCode: '<greet>'
         }]);
     });
 
@@ -404,7 +404,7 @@ describe('serializeProjectBlocks', () => {
 
         expect(result.targets[1].threads).toEqual([{
             firstBlockId: 'setScore',
-            text: '<set [score] to 1>\n<change [lives] by -1>'
+            llmReadyCode: '<set [score] to 1>\n<change [lives] by -1>'
         }]);
     });
 
