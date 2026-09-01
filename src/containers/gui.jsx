@@ -53,14 +53,37 @@ const setProjectIdMetadata = projectId => {
     }
 };
 
+const setGuiRef = (ref, value) => {
+    if (typeof ref === 'function') {
+        ref(value);
+    } else if (ref) {
+        ref.current = value;
+    }
+};
+
 class GUI extends React.Component {
+    constructor (props) {
+        super(props);
+        this.projectSerializer = null;
+        this.getLlmReadySupplement = this.getLlmReadySupplement.bind(this);
+        this.handleProjectSerializerReady = this.handleProjectSerializerReady.bind(this);
+    }
     componentDidMount () {
+        setGuiRef(this.props.guiRef, {
+            getLlmReadySupplement: this.getLlmReadySupplement
+        });
         setIsScratchDesktop(this.props.isScratchDesktop);
         this.props.onStorageInit(storage);
         this.props.onVmInit(this.props.vm);
         setProjectIdMetadata(this.props.projectId);
     }
     componentDidUpdate (prevProps) {
+        if (this.props.guiRef !== prevProps.guiRef) {
+            setGuiRef(prevProps.guiRef, null);
+            setGuiRef(this.props.guiRef, {
+                getLlmReadySupplement: this.getLlmReadySupplement
+            });
+        }
         if (this.props.projectId !== prevProps.projectId) {
             if (this.props.projectId !== null) {
                 this.props.onUpdateProjectId(this.props.projectId);
@@ -72,6 +95,22 @@ class GUI extends React.Component {
             // At this time the project view in www doesn't need to know when a project is unloaded
             this.props.onProjectLoaded();
         }
+    }
+    componentWillUnmount () {
+        setGuiRef(this.props.guiRef, null);
+    }
+    getLlmReadySupplement () {
+        if (this.projectSerializer) {
+            return this.projectSerializer();
+        }
+    }
+    handleProjectSerializerReady (serializer) {
+        this.projectSerializer = serializer;
+        return () => {
+            if (this.projectSerializer === serializer) {
+                this.projectSerializer = null;
+            }
+        };
     }
     render () {
         if (this.props.isError) {
@@ -95,6 +134,7 @@ class GUI extends React.Component {
             /* eslint-enable no-unused-vars */
             children,
             fetchingProject,
+            guiRef: _guiRef,
             isLoading,
             loadingStateVisible,
             ...componentProps
@@ -103,6 +143,7 @@ class GUI extends React.Component {
             <GUIComponent
                 loading={fetchingProject || isLoading || loadingStateVisible}
                 {...componentProps}
+                onProjectSerializerReady={this.handleProjectSerializerReady}
             >
                 {children}
             </GUIComponent>
@@ -116,6 +157,14 @@ GUI.propTypes = {
     cloudHost: PropTypes.string,
     error: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
     fetchingProject: PropTypes.bool,
+    guiRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({
+            current: PropTypes.shape({
+                getLlmReadySupplement: PropTypes.func
+            })
+        })
+    ]),
     intl: intlShape,
     isError: PropTypes.bool,
     isLoading: PropTypes.bool,
@@ -124,7 +173,6 @@ GUI.propTypes = {
     isTotallyNormal: PropTypes.bool,
     loadingStateVisible: PropTypes.bool,
     onProjectLoaded: PropTypes.func,
-    onProjectSerializerReady: PropTypes.func,
     onSeeCommunity: PropTypes.func,
     onStorageInit: PropTypes.func,
     onUpdateProjectId: PropTypes.func,
@@ -207,5 +255,13 @@ const WrappedGui = compose(
     systemPreferencesHOC
 )(ConnectedGUI);
 
-WrappedGui.setAppElement = ReactModal.setAppElement;
-export default WrappedGui;
+const ForwardedGui = React.forwardRef((props, ref) => (
+    <WrappedGui
+        {...props}
+        guiRef={ref}
+    />
+));
+ForwardedGui.displayName = 'ForwardedGui';
+
+ForwardedGui.setAppElement = ReactModal.setAppElement;
+export default ForwardedGui;
