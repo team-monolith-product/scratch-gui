@@ -31,11 +31,7 @@ const ProjectIdUpdatorHOC = function (WrappedComponent) {
     ProjectIdUpdatorComponent.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
-            PropTypes.shape({
-                current: PropTypes.shape({
-                    getLlmReadySupplement: PropTypes.func
-                })
-            })
+            PropTypes.object
         ]),
         projectId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         setProjectId: PropTypes.func

@@ -18,23 +18,53 @@ const workspaceXml = (target, stage) => {
     }</variables>${target.blocks.toXML(target.comments)}</xml>`;
 };
 
-const stackText = (firstBlock, emptyInput) => {
+const isStatementBody = (ScratchBlocks, input) =>
+    input.type === ScratchBlocks.NEXT_STATEMENT && input.name !== 'custom_block';
+
+const statementBodyInputs = (ScratchBlocks, block) =>
+    block.inputList.filter(input => isStatementBody(ScratchBlocks, input));
+
+const blockText = (ScratchBlocks, block, emptyInput) => {
+    const statementInputs = statementBodyInputs(ScratchBlocks, block);
+    if (statementInputs.length === 0) {
+        return block.toString(null, emptyInput);
+    }
+
+    // Blockly's toString follows every input recursively. Hide only C-block body connections from a
+    // shallow view so Blockly still owns all field, locale, dropdown, and value-input rendering.
+    const blockWithoutStatementBodies = Object.create(block);
+    blockWithoutStatementBodies.inputList = block.inputList.map(input => {
+        if (!isStatementBody(ScratchBlocks, input)) return input;
+        const inputWithoutConnection = Object.create(input);
+        inputWithoutConnection.connection = null;
+        return inputWithoutConnection;
+    });
+    return blockWithoutStatementBodies.toString(null, emptyInput);
+};
+
+const stackText = (ScratchBlocks, firstBlock, emptyInput) => {
     const lines = [];
-    const appendBlock = (block, includeText = true) => {
-        if (!block) return;
+    const appendStack = (firstBlockInStack, depth) => {
+        let block = firstBlockInStack;
+        while (block) {
+            const indentation = '  '.repeat(depth);
+            lines.push(`${indentation}${blockText(ScratchBlocks, block, emptyInput)}`);
 
-        if (includeText) {
-            lines.push(block.toString(null, emptyInput));
+            statementBodyInputs(ScratchBlocks, block).forEach(input => {
+                lines.push(`${indentation}  ${input.name} {`);
+                const child = input.connection.targetBlock();
+                if (child) {
+                    appendStack(child, depth + 2);
+                } else {
+                    lines.push(`${indentation}    ${emptyInput}`);
+                }
+                lines.push(`${indentation}  }`);
+            });
+            block = block.getNextBlock();
         }
-
-        const nextBlock = block.getNextBlock();
-        block.getChildren(true)
-            .filter(child => child !== nextBlock && !child.isShadow() && !child.outputConnection)
-            .forEach(child => appendBlock(child, false));
-        appendBlock(nextBlock);
     };
 
-    appendBlock(firstBlock);
+    appendStack(firstBlock, 0);
     return lines.join('\n');
 };
 
@@ -54,7 +84,7 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
             isStage: target.isStage,
             threads: workspace.getTopBlocks(true).map(firstBlock => ({
                 firstBlockId: firstBlock.id,
-                llmReadyCode: stackText(firstBlock, emptyInput)
+                llmReadyCode: stackText(ScratchBlocks, firstBlock, emptyInput)
             }))
         };
     } finally {
