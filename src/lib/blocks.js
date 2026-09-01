@@ -259,8 +259,8 @@ export default function (vm, useCatBlocks) {
                     // The block was in the flyout so look up future block info there.
                     lookupBlocks = vm.runtime.flyoutBlocks;
                 }
-                const sort = function (sortOptions) {
-                    sortOptions.sort(ScratchBlocks.scratchBlocksUtils.compareStrings);
+                const sort = function (options) {
+                    options.sort(ScratchBlocks.scratchBlocksUtils.compareStrings);
                 };
                 // Get all the stage variables (no lists) so we can add them to menu when the stage is selected.
                 const stageVariableOptions = vm.runtime.getTargetForStage().getAllVariableNamesInScopeByType('');
