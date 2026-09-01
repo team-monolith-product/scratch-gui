@@ -566,6 +566,7 @@ class Blocks extends React.Component {
             onActivateColorPicker,
             onOpenConnectionModal,
             onOpenSoundRecorder,
+            onProjectSerializerReady,
             updateToolboxState,
             onActivateCustomProcedures,
             onRequestCloseExtensionLibrary,
