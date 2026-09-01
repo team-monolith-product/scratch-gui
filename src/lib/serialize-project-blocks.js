@@ -30,8 +30,6 @@ const blockText = (ScratchBlocks, block, emptyInput) => {
         return block.toString(null, emptyInput);
     }
 
-    // Blockly's toString follows every input recursively. Hide only C-block body connections from a
-    // shallow view so Blockly still owns all field, locale, dropdown, and value-input rendering.
     const blockWithoutStatementBodies = Object.create(block);
     blockWithoutStatementBodies.inputList = block.inputList.map(input => {
         if (!isStatementBody(ScratchBlocks, input)) return input;
