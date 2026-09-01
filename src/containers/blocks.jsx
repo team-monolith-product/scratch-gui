@@ -482,6 +482,7 @@ class Blocks extends React.Component {
         }
     }
     handleBlocksInfoUpdate (categoryInfo) {
+        // @todo Later we should replace this to avoid all the warnings from redefining blocks.
         this.handleExtensionAdded(categoryInfo);
     }
     handleCategorySelected (categoryId) {
