@@ -1,422 +1,218 @@
 import VM from 'scratch-vm';
-import ScratchBlocks from 'scratch-blocks';
-import editorMessages from 'scratch-l10n/locales/editor-msgs';
 
 import VMScratchBlocks from '../../../src/lib/blocks';
 import serializeProjectBlocks from '../../../src/lib/serialize-project-blocks';
 
-const numberInput = value => [1, [4, value]];
-const textInput = value => [1, [10, value]];
-
-const createCostume = () => ({
-    assetId: 'cd21514d0531fdffb22204e0ec5ed84a',
-    name: 'costume',
-    bitmapResolution: 1,
-    md5ext: 'cd21514d0531fdffb22204e0ec5ed84a.svg',
-    dataFormat: 'svg',
-    rotationCenterX: 0,
-    rotationCenterY: 0
+const createBlock = ({
+    id,
+    isShadow = false,
+    outputConnection = null,
+    text
+}) => ({
+    getChildren: jest.fn(() => []),
+    getNextBlock: jest.fn(() => null),
+    id,
+    isShadow: jest.fn(() => isShadow),
+    outputConnection,
+    toString: jest.fn(() => text)
 });
 
-const createProject = ({
-    extensions = [],
-    spriteBlocks = {},
-    spriteVariables = {},
-    stageBlocks = {},
-    stageVariables = {}
-} = {}) => ({
-    targets: [{
-        isStage: true,
-        name: 'Stage',
-        variables: stageVariables,
-        lists: {},
-        broadcasts: {},
-        blocks: stageBlocks,
+const createHarness = ({locale = 'en', loadError} = {}) => {
+    const firstBlock = createBlock({id: 'hat', text: 'when flag clicked'});
+    const shadowBlock = createBlock({id: 'shadow', isShadow: true, text: '10'});
+    const reporterBlock = createBlock({id: 'reporter', outputConnection: {}, text: 'x position'});
+    const nextBlock = createBlock({id: 'move', text: 'move 10 steps'});
+    firstBlock.getChildren.mockReturnValue([shadowBlock, reporterBlock, nextBlock]);
+    firstBlock.getNextBlock.mockReturnValue(nextBlock);
+
+    const workspace = {
+        dispose: jest.fn(),
+        getTopBlocks: jest.fn(() => [firstBlock])
+    };
+    const previousMainWorkspace = {options: {pathToMedia: '/blocks-media/'}};
+    const dom = {};
+    const ScratchBlocks = {
+        mainWorkspace: previousMainWorkspace,
+        Workspace: jest.fn(() => workspace),
+        Xml: {
+            domToWorkspace: loadError ? jest.fn(() => {
+                throw loadError;
+            }) : jest.fn(),
+            textToDom: jest.fn(() => dom)
+        }
+    };
+    const stageVariable = {toXML: jest.fn(() => '<variable id="score">score</variable>')};
+    const localVariable = {toXML: jest.fn(() => '<variable id="lives">lives</variable>')};
+    const stage = {
+        variables: {score: stageVariable}
+    };
+    const target = {
+        blocks: {toXML: jest.fn(() => '<block id="hat"/>')},
         comments: {},
-        currentCostume: 0,
-        costumes: [createCostume()],
-        sounds: [],
-        volume: 100,
-        layerOrder: 0,
-        tempo: 60,
-        videoTransparency: 50,
-        videoState: 'on',
-        textToSpeechLanguage: null
-    }, {
+        getName: jest.fn(() => 'Sprite1'),
+        isOriginal: true,
         isStage: false,
-        name: 'Sprite1',
-        variables: spriteVariables,
-        lists: {},
-        broadcasts: {},
-        blocks: spriteBlocks,
-        comments: {},
-        currentCostume: 0,
-        costumes: [createCostume()],
-        sounds: [],
-        volume: 100,
-        layerOrder: 1,
-        visible: true,
-        x: 0,
-        y: 0,
-        size: 100,
-        direction: 90,
-        draggable: false,
-        rotationStyle: 'all around'
-    }],
-    monitors: [],
-    extensions,
-    meta: {
-        semver: '3.0.0',
-        vm: '0.2.0',
-        agent: 'serialize-project-blocks test'
-    }
-});
+        variables: {lives: localVariable}
+    };
+    const vm = {
+        getLocale: jest.fn(() => locale),
+        runtime: {
+            getTargetForStage: jest.fn(() => stage),
+            targets: [target, {isOriginal: false}]
+        }
+    };
 
-const loadAndSerialize = async (project, locale = 'en') => {
-    const vm = new VM();
-    const configuredScratchBlocks = VMScratchBlocks(vm, false);
-    await vm.loadProject(project);
-    configuredScratchBlocks.ScratchMsgs.setLocale(locale);
-    await vm.setLocale(locale, editorMessages[locale]);
-    return serializeProjectBlocks(vm, configuredScratchBlocks);
+    return {
+        dom,
+        firstBlock,
+        localVariable,
+        nextBlock,
+        previousMainWorkspace,
+        ScratchBlocks,
+        stageVariable,
+        target,
+        vm,
+        workspace
+    };
 };
 
 describe('serializeProjectBlocks', () => {
-    test('orders top-level scripts by y and then x coordinates', async () => {
-        const previousMainWorkspace = ScratchBlocks.mainWorkspace;
-        const result = await loadAndSerialize(createProject({
-            spriteBlocks: {
-                bottom: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: null,
-                    inputs: {MESSAGE: textInput('bottom')},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 20,
-                    y: 200
-                },
-                topRight: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: null,
-                    inputs: {MESSAGE: textInput('right')},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 200,
-                    y: 20
-                },
-                topLeft: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: null,
-                    inputs: {MESSAGE: textInput('left')},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 20,
-                    y: 20
-                }
-            }
-        }));
+    test('uses Blockly ordering and text APIs to build the public contract', () => {
+        const harness = createHarness();
 
-        expect(result.targets[1].threads).toEqual([{
-            firstBlockId: 'topLeft',
-            llmReadyCode: '<say left>'
-        }, {
-            firstBlockId: 'topRight',
-            llmReadyCode: '<say right>'
-        }, {
-            firstBlockId: 'bottom',
-            llmReadyCode: '<say bottom>'
-        }]);
-        expect(ScratchBlocks.mainWorkspace).toBe(previousMainWorkspace);
+        const result = serializeProjectBlocks(harness.vm, harness.ScratchBlocks);
+
+        expect(result).toEqual({
+            targets: [{
+                index: 0,
+                name: 'Sprite1',
+                isStage: false,
+                threads: [{
+                    firstBlockId: 'hat',
+                    llmReadyCode: 'when flag clicked\nmove 10 steps'
+                }]
+            }]
+        });
+        expect(harness.workspace.getTopBlocks).toHaveBeenCalledWith(true);
+        expect(harness.firstBlock.getChildren).toHaveBeenCalledWith(true);
+        expect(harness.firstBlock.toString).toHaveBeenCalledWith(null, '(empty)');
+        expect(harness.nextBlock.toString).toHaveBeenCalledWith(null, '(empty)');
+        expect(harness.ScratchBlocks.Workspace).toHaveBeenCalledWith({pathToMedia: '/blocks-media/'});
+        expect(harness.ScratchBlocks.Xml.domToWorkspace)
+            .toHaveBeenCalledWith(harness.dom, harness.workspace);
+        expect(harness.ScratchBlocks.Xml.textToDom.mock.calls[0][0]).toContain(
+            '<variable id="score">score</variable><variable id="lives">lives</variable>'
+        );
+        expect(harness.stageVariable.toXML).toHaveBeenCalledWith();
+        expect(harness.localVariable.toXML).toHaveBeenCalledWith(true);
+        expect(harness.workspace.dispose).toHaveBeenCalledWith();
+        expect(harness.ScratchBlocks.mainWorkspace).toBe(harness.previousMainWorkspace);
     });
 
-    test('serializes connected stacks, nested reporters, empty inputs and C-block bodies', async () => {
-        const result = await loadAndSerialize(createProject({
-            spriteBlocks: {
-                hat: {
-                    opcode: 'event_whenflagclicked',
-                    next: 'repeat',
-                    parent: null,
-                    inputs: {},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 10
-                },
-                repeat: {
-                    opcode: 'control_repeat',
-                    next: 'if',
-                    parent: 'hat',
-                    inputs: {
-                        TIMES: numberInput(2),
-                        SUBSTACK: [2, 'move']
-                    },
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                move: {
-                    opcode: 'motion_movesteps',
-                    next: 'say',
-                    parent: 'repeat',
-                    inputs: {STEPS: numberInput(10)},
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                say: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: 'move',
-                    inputs: {MESSAGE: textInput('inside')},
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                if: {
-                    opcode: 'control_if',
-                    next: null,
-                    parent: 'repeat',
-                    inputs: {
-                        CONDITION: [2, 'greater'],
-                        SUBSTACK: [2, 'think']
-                    },
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                greater: {
-                    opcode: 'operator_gt',
-                    next: null,
-                    parent: 'if',
-                    inputs: {OPERAND1: numberInput(5)},
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                think: {
-                    opcode: 'looks_thinkforsecs',
-                    next: null,
-                    parent: 'if',
-                    inputs: {
-                        MESSAGE: textInput('done'),
-                        SECS: numberInput(1)
-                    },
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                }
-            }
-        }));
+    test('keeps a top-level reporter as a non-empty thread', () => {
+        const harness = createHarness();
+        const reporter = createBlock({id: 'reporter', outputConnection: {}, text: 'x position'});
+        harness.workspace.getTopBlocks.mockReturnValue([reporter]);
 
-        expect(result.targets[1].threads).toEqual([{
+        const result = serializeProjectBlocks(harness.vm, harness.ScratchBlocks);
+
+        expect(result.targets[0].threads).toEqual([{
+            firstBlockId: 'reporter',
+            llmReadyCode: 'x position'
+        }]);
+    });
+
+    test('serializes real ScratchBlocks without duplicating a C-block body', () => {
+        const vm = new VM();
+        const ScratchBlocks = VMScratchBlocks(vm, false);
+        const target = {
+            blocks: {toXML: () => `
+                <block type="event_whenflagclicked" id="hat" x="10" y="10">
+                    <next>
+                        <block type="control_repeat" id="repeat">
+                            <value name="TIMES">
+                                <shadow type="math_whole_number" id="times">
+                                    <field name="NUM">2</field>
+                                </shadow>
+                            </value>
+                            <statement name="SUBSTACK">
+                                <block type="motion_movesteps" id="move">
+                                    <value name="STEPS">
+                                        <shadow type="math_number" id="steps">
+                                            <field name="NUM">10</field>
+                                        </shadow>
+                                    </value>
+                                    <next>
+                                        <block type="looks_say" id="say">
+                                            <value name="MESSAGE">
+                                                <shadow type="text" id="message">
+                                                    <field name="TEXT">inside</field>
+                                                </shadow>
+                                            </value>
+                                        </block>
+                                    </next>
+                                </block>
+                            </statement>
+                            <next>
+                                <block type="looks_think" id="think">
+                                    <value name="MESSAGE">
+                                        <shadow type="text" id="thought">
+                                            <field name="TEXT">after</field>
+                                        </shadow>
+                                    </value>
+                                </block>
+                            </next>
+                        </block>
+                    </next>
+                </block>
+                <block type="motion_xposition" id="reporter" x="10" y="200" />`},
+            comments: {},
+            getName: () => 'Sprite1',
+            isOriginal: true,
+            isStage: false,
+            variables: {}
+        };
+        vm.runtime.targets = [target];
+        vm.runtime.getTargetForStage = () => null;
+
+        const result = serializeProjectBlocks(vm, ScratchBlocks);
+
+        expect(result.targets[0].threads).toEqual([{
             firstBlockId: 'hat',
             llmReadyCode: [
-                '<when clicked>',
-                '<repeat 2>:',
-                '\t<move 10 steps>',
-                '\t<say inside>',
-                '<if <5 > (empty)> then>:',
-                '\t<think done for 1 seconds>'
+                'when flag clicked',
+                'repeat 2 move 10 steps *',
+                'say inside',
+                'think after'
             ].join('\n')
-        }]);
-    });
-
-    test('localizes empty inputs with the same locale as block labels', async () => {
-        const result = await loadAndSerialize(createProject({
-            spriteBlocks: {
-                say: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: null,
-                    inputs: {},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 10
-                }
-            }
-        }), 'ko');
-
-        expect(result.targets[1].threads).toEqual([{
-            firstBlockId: 'say',
-            llmReadyCode: '<(비어 있음) 말하기>'
-        }]);
-    });
-
-    test('uses extension definitions already registered by the GUI owner', async () => {
-        const previousDefinition = ScratchBlocks.Blocks.pen_penDown;
-        ScratchBlocks.defineBlocksWithJsonArray([{
-            type: 'pen_penDown',
-            message0: 'pen down',
-            args0: [],
-            previousStatement: null,
-            nextStatement: null,
-            colour: '#0fbd8c'
-        }]);
-
-        try {
-            const result = await loadAndSerialize(createProject({
-                extensions: ['pen'],
-                spriteBlocks: {
-                    penDown: {
-                        opcode: 'pen_penDown',
-                        next: null,
-                        parent: null,
-                        inputs: {},
-                        fields: {},
-                        shadow: false,
-                        topLevel: true,
-                        x: 10,
-                        y: 10
-                    }
-                }
-            }, 'en'));
-
-            expect(result.targets[1].threads).toEqual([{
-                firstBlockId: 'penDown',
-                llmReadyCode: '<pen down>'
-            }]);
-        } finally {
-            if (previousDefinition) {
-                ScratchBlocks.Blocks.pen_penDown = previousDefinition;
-            } else {
-                delete ScratchBlocks.Blocks.pen_penDown;
-            }
-        }
-    });
-
-    test('serializes a custom procedure signature, body and call', async () => {
-        const mutation = {
-            tagName: 'mutation',
-            children: [],
-            proccode: 'greet',
-            argumentids: '[]',
-            argumentnames: '[]',
-            argumentdefaults: '[]',
-            warp: 'false'
-        };
-        const result = await loadAndSerialize(createProject({
-            spriteBlocks: {
-                definition: {
-                    opcode: 'procedures_definition',
-                    next: 'body',
-                    parent: null,
-                    inputs: {custom_block: [1, 'prototype']},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 10
-                },
-                prototype: {
-                    opcode: 'procedures_prototype',
-                    next: null,
-                    parent: 'definition',
-                    inputs: {},
-                    fields: {},
-                    shadow: true,
-                    topLevel: false,
-                    mutation
-                },
-                body: {
-                    opcode: 'looks_say',
-                    next: null,
-                    parent: 'definition',
-                    inputs: {MESSAGE: textInput('hello')},
-                    fields: {},
-                    shadow: false,
-                    topLevel: false
-                },
-                call: {
-                    opcode: 'procedures_call',
-                    next: null,
-                    parent: null,
-                    inputs: {},
-                    fields: {},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 100,
-                    mutation
-                }
-            }
-        }));
-
-        expect(result.targets[1].threads).toEqual([{
-            firstBlockId: 'definition',
-            llmReadyCode: '<define greet>\n<say hello>'
         }, {
-            firstBlockId: 'call',
-            llmReadyCode: '<greet>'
+            firstBlockId: 'reporter',
+            llmReadyCode: 'x position'
         }]);
     });
 
-    test('does not reconfigure global ScratchBlocks while serializing', async () => {
-        const vm = new VM();
-        const configuredScratchBlocks = VMScratchBlocks(vm, false);
-        await vm.loadProject(createProject());
-        configuredScratchBlocks.ScratchMsgs.setLocale('en');
-        await vm.setLocale('en', editorMessages.en);
-        const soundMenuInitializer = configuredScratchBlocks.Blocks.sound_sounds_menu.init;
-        const locale = configuredScratchBlocks.ScratchMsgs.currentLocale_;
+    test('passes the localized empty-input label to Blockly', () => {
+        const harness = createHarness({locale: 'ko'});
 
-        serializeProjectBlocks(vm, configuredScratchBlocks);
+        serializeProjectBlocks(harness.vm, harness.ScratchBlocks);
 
-        expect(configuredScratchBlocks.Blocks.sound_sounds_menu.init).toBe(soundMenuInitializer);
-        expect(configuredScratchBlocks.ScratchMsgs.currentLocale_).toBe(locale);
+        expect(harness.firstBlock.toString).toHaveBeenCalledWith(null, '(비어 있음)');
     });
 
-    test('serializes stage and sprite variables through the real VM XML boundary', async () => {
-        const result = await loadAndSerialize(createProject({
-            stageVariables: {score: ['score', 0]},
-            spriteVariables: {lives: ['lives', 3]},
-            spriteBlocks: {
-                setScore: {
-                    opcode: 'data_setvariableto',
-                    next: 'changeLives',
-                    parent: null,
-                    inputs: {VALUE: numberInput(1)},
-                    fields: {VARIABLE: ['score', 'score']},
-                    shadow: false,
-                    topLevel: true,
-                    x: 10,
-                    y: 10
-                },
-                changeLives: {
-                    opcode: 'data_changevariableby',
-                    next: null,
-                    parent: 'setScore',
-                    inputs: {VALUE: numberInput(-1)},
-                    fields: {VARIABLE: ['lives', 'lives']},
-                    shadow: false,
-                    topLevel: false
-                }
-            }
-        }));
+    test('restores Blockly state when loading the workspace fails', () => {
+        const loadError = new Error('invalid block XML');
+        const harness = createHarness({loadError});
 
-        expect(result.targets[1].threads).toEqual([{
-            firstBlockId: 'setScore',
-            llmReadyCode: '<set [score] to 1>\n<change [lives] by -1>'
-        }]);
+        expect(() => serializeProjectBlocks(harness.vm, harness.ScratchBlocks)).toThrow(loadError);
+        expect(harness.workspace.dispose).toHaveBeenCalledWith();
+        expect(harness.ScratchBlocks.mainWorkspace).toBe(harness.previousMainWorkspace);
     });
 
-    test('rejects a value without a VM runtime', () => {
-        expect(() => serializeProjectBlocks(null)).toThrow(TypeError);
-        expect(() => serializeProjectBlocks({})).toThrow(TypeError);
-    });
+    test('rejects missing dependencies', () => {
+        expect(() => serializeProjectBlocks(null)).toThrow(/VM/);
+        expect(() => serializeProjectBlocks({})).toThrow(/VM/);
 
-    test('rejects serialization without the GUI ScratchBlocks dependency', () => {
-        const vm = new VM();
-
-        expect(() => serializeProjectBlocks(vm)).toThrow(TypeError);
+        const vm = {runtime: {}};
         expect(() => serializeProjectBlocks(vm)).toThrow(/ScratchBlocks/);
     });
 });
