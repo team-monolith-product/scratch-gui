@@ -93,9 +93,9 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
     }
 };
 
-const serializeProjectBlocks = (vm, ScratchBlocks) => {
+const getLlmReadySupplement = (vm, ScratchBlocks) => {
     if (!vm || !vm.runtime) {
-        throw new TypeError('serializeProjectBlocks requires a VM with a runtime');
+        throw new TypeError('getLlmReadySupplement requires a VM with a runtime');
     }
     if (!ScratchBlocks || !ScratchBlocks.Workspace || !ScratchBlocks.Xml) {
         throw new TypeError('serializeProjectBlocks requires the GUI ScratchBlocks instance');
@@ -112,4 +112,4 @@ const serializeProjectBlocks = (vm, ScratchBlocks) => {
     };
 };
 
-export default serializeProjectBlocks;
+export default getLlmReadySupplement;

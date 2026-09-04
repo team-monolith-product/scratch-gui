@@ -20,7 +20,7 @@ import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
 import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
-import serializeProjectBlocks from '../lib/serialize-project-blocks';
+import getLlmReadySupplement from '../lib/get-llm-ready-supplement';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -107,7 +107,7 @@ class Blocks extends React.Component {
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
         this.props.onLlmReadySupplementAvailable(
-            () => serializeProjectBlocks(this.props.vm, this.ScratchBlocks)
+            () => getLlmReadySupplement(this.props.vm, this.ScratchBlocks)
         );
 
         // Register buttons under new callback keys for creating variables,
