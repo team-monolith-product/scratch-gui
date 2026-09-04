@@ -172,6 +172,8 @@ jobs:
                 echo Installed chromium version: ${{ steps.setup-chrome.outputs.chrome-version }}
                 ${{ steps.setup-chrome.outputs.chrome-path }} --version
             - name: Run Integration Tests
+              env:
+                CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
               run: npm run test:integration -- --reporters="default" --reporters="jest-junit"
             - name: Store Integration Test Results
               uses: actions/upload-artifact@v4
