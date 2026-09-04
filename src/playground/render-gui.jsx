@@ -42,16 +42,8 @@ export default appTarget => {
     // TODO a hack for testing the backpack, allow backpack host to be set by url param
     const backpackHostMatches = window.location.href.match(/[?&]backpack_host=([^&]*)&?/);
     const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
-    const integrationTestMode = window.location.protocol === 'file:' &&
+    const isIntegrationTest = window.location.protocol === 'file:' &&
         /[?&]integration_test=true(?:[&#]|$)/.test(window.location.href);
-    const integrationTestProps = integrationTestMode ? {
-        backpackVisible: true,
-        onClickLogo,
-        showComingSoon: true,
-        showMenuBar: true
-    } : {
-        showMenuBar: false
-    };
 
     const scratchDesktopMatches = window.location.href.match(/[?&]isScratchDesktop=([^&]+)/);
     let simulateScratchDesktop;
@@ -84,10 +76,13 @@ export default appTarget => {
                 onTelemetryModalOptOut={handleTelemetryModalOptOut}
             /> :
             <WrappedGui
+                backpackVisible={isIntegrationTest}
                 canEditTitle
                 backpackHost={backpackHost}
                 canSave={false}
-                {...integrationTestProps}
+                onClickLogo={isIntegrationTest ? onClickLogo : null}
+                showComingSoon={isIntegrationTest}
+                showMenuBar={isIntegrationTest}
             />,
         appTarget);
 };

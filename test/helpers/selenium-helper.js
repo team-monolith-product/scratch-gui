@@ -137,11 +137,7 @@ class SeleniumHelper {
         // This is especially important on Windows, where Selenium directs JS console messages to stdout
         args.push('--autoplay-policy=no-user-gesture-required');
 
-        const chromeOptions = {args};
-        if (process.env.CHROME_BINARY_PATH) {
-            chromeOptions.binary = process.env.CHROME_BINARY_PATH;
-        }
-        chromeCapabilities.set('chromeOptions', chromeOptions);
+        chromeCapabilities.set('chromeOptions', {args, binary: process.env.CHROME_BINARY_PATH});
         chromeCapabilities.setLoggingPrefs({
             performance: 'ALL'
         });
