@@ -237,8 +237,13 @@ class SeleniumHelper {
             await this.setTitle(`loadUri ${uri}`);
             const WINDOW_WIDTH = 1024;
             const WINDOW_HEIGHT = 768;
+            const hashIndex = uri.indexOf('#');
+            const queryEnd = hashIndex === -1 ? uri.length : hashIndex;
+            const querySeparator = uri.substring(0, queryEnd).includes('?') ? '&' : '?';
+            const integrationTestUri = `${uri.substring(0, queryEnd)}` +
+                `${querySeparator}integration_test=true${uri.substring(queryEnd)}`;
             await this.driver
-                .get(`file://${uri}`);
+                .get(`file://${integrationTestUri}`);
             await this.driver
                 .executeScript('window.onbeforeunload = undefined;');
             await this.driver.manage().window()

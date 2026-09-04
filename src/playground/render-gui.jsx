@@ -7,6 +7,10 @@ import GUI from '../containers/gui.jsx';
 import HashParserHOC from '../lib/hash-parser-hoc.jsx';
 import log from '../lib/log.js';
 
+const onClickLogo = () => {
+    window.location = 'https://scratch.mit.edu';
+};
+
 const handleTelemetryModalCancel = () => {
     log('User canceled telemetry modal');
 };
@@ -38,6 +42,9 @@ export default appTarget => {
     // TODO a hack for testing the backpack, allow backpack host to be set by url param
     const backpackHostMatches = window.location.href.match(/[?&]backpack_host=([^&]*)&?/);
     const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
+    const isIntegrationTest = window.location.protocol === 'file:' &&
+        /[?&]integration_test=true(?:[&#]|$)/.test(window.location.href);
+    const integrationTestProps = isIntegrationTest ? {onClickLogo} : {};
 
     const scratchDesktopMatches = window.location.href.match(/[?&]isScratchDesktop=([^&]+)/);
     let simulateScratchDesktop;
@@ -70,10 +77,13 @@ export default appTarget => {
                 onTelemetryModalOptOut={handleTelemetryModalOptOut}
             /> :
             <WrappedGui
+                backpackVisible={isIntegrationTest}
                 canEditTitle
                 backpackHost={backpackHost}
                 canSave={false}
-                showMenuBar={false}
+                showComingSoon={isIntegrationTest}
+                showMenuBar={isIntegrationTest}
+                {...integrationTestProps}
             />,
         appTarget);
 };

@@ -123,12 +123,6 @@ jobs:
               env:
                 NODE_ENV: production
               run: npm run build
-            - name: Cache Build Directory
-              uses: actions/cache@v4
-              with:
-                path: 
-                    ./build
-                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
             - name: Cache Dist Directory
               uses: actions/cache@v4
               with:
@@ -172,11 +166,10 @@ jobs:
                     node_modules
                 key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
             - name: Retrieve Build
-              uses: actions/cache@v4
+              uses: actions/download-artifact@v4
               with:
-                path: 
-                    ./build
-                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
+                name: build-output
+                path: ./build
             - uses: browser-actions/setup-chrome@v1
               with:
                 chrome-version: stable
@@ -232,11 +225,10 @@ jobs:
                     node_modules
                 key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
             - name: Retrieve Build Directory
-              uses: actions/cache@v4
+              uses: actions/download-artifact@v4
               with:
-                path: 
-                    ./build
-                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
+                name: build-output
+                path: ./build
             - name: Deploy playground to GitHub Pages
               
               uses: peaceiris/actions-gh-pages@v4
