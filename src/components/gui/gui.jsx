@@ -106,7 +106,7 @@ const GUIComponent = props => {
         onCloseAccountNav,
         onLogOut,
         onOpenRegistration,
-        onProjectSerializerReady,
+        onLlmReadySupplementAvailable,
         onToggleLoginOpen,
         onActivateCostumesTab,
         onActivateSoundsTab,
@@ -374,7 +374,7 @@ const GUIComponent = props => {
                                             options={{
                                                 media: `${basePath}static/${themeMap[theme].blocksMediaFolder}/`
                                             }}
-                                            onProjectSerializerReady={onProjectSerializerReady}
+                                            onLlmReadySupplementAvailable={onLlmReadySupplementAvailable}
                                             stageSize={stageSize}
                                             theme={theme}
                                             vm={vm}
@@ -479,7 +479,7 @@ GUIComponent.propTypes = {
     onExtensionButtonClick: PropTypes.func,
     onLogOut: PropTypes.func,
     onOpenRegistration: PropTypes.func,
-    onProjectSerializerReady: PropTypes.func,
+    onLlmReadySupplementAvailable: PropTypes.func,
     onRequestCloseBackdropLibrary: PropTypes.func,
     onRequestCloseCostumeLibrary: PropTypes.func,
     onRequestCloseTelemetryModal: PropTypes.func,
@@ -525,7 +525,7 @@ GUIComponent.defaultProps = {
     isShared: false,
     isTotallyNormal: false,
     loading: false,
-    onProjectSerializerReady: () => () => {},
+    onLlmReadySupplementAvailable: () => {},
     showComingSoon: false,
     showMenuBar: true,
     showSb3Area: false,

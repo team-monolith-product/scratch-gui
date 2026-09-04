@@ -18,11 +18,10 @@ const workspaceXml = (target, stage) => {
     }</variables>${target.blocks.toXML(target.comments)}</xml>`;
 };
 
-const isStatementBody = (ScratchBlocks, input) =>
-    input.type === ScratchBlocks.NEXT_STATEMENT && input.name !== 'custom_block';
-
 const statementBodyInputs = (ScratchBlocks, block) =>
-    block.inputList.filter(input => isStatementBody(ScratchBlocks, input));
+    block.inputList.filter(input =>
+        input.type === ScratchBlocks.NEXT_STATEMENT && input.name !== 'custom_block'
+    );
 
 const blockText = (ScratchBlocks, block, emptyInput) => {
     const statementInputs = statementBodyInputs(ScratchBlocks, block);
@@ -32,7 +31,7 @@ const blockText = (ScratchBlocks, block, emptyInput) => {
 
     const blockWithoutStatementBodies = Object.create(block);
     blockWithoutStatementBodies.inputList = block.inputList.map(input => {
-        if (!isStatementBody(ScratchBlocks, input)) return input;
+        if (input.type !== ScratchBlocks.NEXT_STATEMENT || input.name === 'custom_block') return input;
         const inputWithoutConnection = Object.create(input);
         inputWithoutConnection.connection = null;
         return inputWithoutConnection;
@@ -94,12 +93,12 @@ const serializeTarget = (ScratchBlocks, target, stage, emptyInput) => {
     }
 };
 
-const serializeProjectBlocks = (vm, ScratchBlocks) => {
+const getLlmReadySupplement = (vm, ScratchBlocks) => {
     if (!vm || !vm.runtime) {
-        throw new TypeError('serializeProjectBlocks requires a VM with a runtime');
+        throw new TypeError('getLlmReadySupplement requires a VM with a runtime');
     }
     if (!ScratchBlocks || !ScratchBlocks.Workspace || !ScratchBlocks.Xml) {
-        throw new TypeError('serializeProjectBlocks requires the GUI ScratchBlocks instance');
+        throw new TypeError('getLlmReadySupplement requires the GUI ScratchBlocks instance');
     }
 
     const stage = vm.runtime.getTargetForStage();
@@ -113,4 +112,4 @@ const serializeProjectBlocks = (vm, ScratchBlocks) => {
     };
 };
 
-export default serializeProjectBlocks;
+export default getLlmReadySupplement;

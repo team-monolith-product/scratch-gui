@@ -16,23 +16,12 @@ const ProjectIdUpdatorHOC = function (WrappedComponent) {
             }
         }
         render () {
-            const {
-                forwardedRef,
-                ...componentProps
-            } = this.props;
             return (
-                <WrappedComponent
-                    {...componentProps}
-                    ref={forwardedRef}
-                />
+                <WrappedComponent {...this.props} />
             );
         }
     }
     ProjectIdUpdatorComponent.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.object
-        ]),
         projectId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         setProjectId: PropTypes.func
     };
@@ -41,15 +30,7 @@ const ProjectIdUpdatorHOC = function (WrappedComponent) {
             dispatch(setProjectId(projectId));
         }
     });
-    const ConnectedProjectIdUpdator = connect(null, mapDispatchToProps)(ProjectIdUpdatorComponent);
-    const ProjectIdUpdatorWithRef = React.forwardRef((props, ref) => (
-        <ConnectedProjectIdUpdator
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
-    ProjectIdUpdatorWithRef.displayName = 'ProjectIdUpdatorWithRef';
-    return ProjectIdUpdatorWithRef;
+    return connect(null, mapDispatchToProps)(ProjectIdUpdatorComponent);
 };
 
 export {

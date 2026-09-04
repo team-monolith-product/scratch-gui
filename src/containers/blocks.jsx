@@ -20,7 +20,7 @@ import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
 import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
-import serializeProjectBlocks from '../lib/serialize-project-blocks';
+import getLlmReadySupplement from '../lib/get-llm-ready-supplement';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -106,10 +106,8 @@ class Blocks extends React.Component {
             {rtl: this.props.isRtl, toolbox: this.props.toolboxXML, colours: getColorsForTheme(this.props.theme)}
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
-        const vm = this.props.vm;
-        const ScratchBlocks = this.ScratchBlocks;
-        this.releaseProjectSerializer = this.props.onProjectSerializerReady(
-            () => serializeProjectBlocks(vm, ScratchBlocks)
+        this.props.onLlmReadySupplementAvailable(
+            () => getLlmReadySupplement(this.props.vm, this.ScratchBlocks)
         );
 
         // Register buttons under new callback keys for creating variables,
@@ -202,7 +200,7 @@ class Blocks extends React.Component {
         }
     }
     componentWillUnmount () {
-        this.releaseProjectSerializer();
+        this.props.onLlmReadySupplementAvailable();
         this.detachVM();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
@@ -566,7 +564,7 @@ class Blocks extends React.Component {
             onActivateColorPicker,
             onOpenConnectionModal,
             onOpenSoundRecorder,
-            onProjectSerializerReady,
+            onLlmReadySupplementAvailable,
             updateToolboxState,
             onActivateCustomProcedures,
             onRequestCloseExtensionLibrary,
@@ -632,7 +630,7 @@ Blocks.propTypes = {
     onActivateCustomProcedures: PropTypes.func,
     onOpenConnectionModal: PropTypes.func,
     onOpenSoundRecorder: PropTypes.func,
-    onProjectSerializerReady: PropTypes.func,
+    onLlmReadySupplementAvailable: PropTypes.func,
     onRequestCloseCustomProcedures: PropTypes.func,
     onRequestCloseExtensionLibrary: PropTypes.func,
     options: PropTypes.shape({
@@ -675,7 +673,7 @@ Blocks.defaultOptions = {
 
 Blocks.defaultProps = {
     isVisible: true,
-    onProjectSerializerReady: () => () => {},
+    onLlmReadySupplementAvailable: () => {},
     options: Blocks.defaultOptions,
     theme: DEFAULT_THEME
 };
