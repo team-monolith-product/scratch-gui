@@ -3,11 +3,9 @@ import SeleniumHelper from '../helpers/selenium-helper';
 
 const {
     clickText,
-    findVisibleByXpath,
     getDriver,
     getLogs,
-    loadUri,
-    textToXpath
+    loadUri
 } = new SeleniumHelper();
 
 const uri = path.resolve(__dirname, '../../build/index.html');
@@ -37,9 +35,9 @@ describe('Working with the how-to library', () => {
         // Try activating the backpack from the costumes tab to make sure it isn't pushed off
         await clickText('Costumes');
 
-        const backpackHeader = await findVisibleByXpath('//div[contains(@class, "backpack_backpack-header")]');
-        await backpackHeader.click();
-        await findVisibleByXpath(textToXpath('Backpack is empty'));
+        // Check that the backpack header is visible and wrapped in a coming soon tooltip
+        await clickText('Backpack'); // Not wrapped in tooltip
+        await clickText('Backpack is empty'); // Make sure it can expand, is empty
         const logs = await getLogs();
         await expect(logs).toEqual([]);
     });

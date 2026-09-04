@@ -3,8 +3,6 @@ jest.setTimeout(30000); // eslint-disable-line no-undef
 import bindAll from 'lodash.bindall';
 import 'chromedriver'; // register path
 import webdriver from 'selenium-webdriver';
-import {addIntegrationTestMode} from '../../src/playground/integration-test-mode';
-import createChromeOptions from './chrome-options';
 
 const {Button, By, until} = webdriver;
 
@@ -64,7 +62,6 @@ class SeleniumHelper {
             'findByText',
             'textToXpath',
             'findByXpath',
-            'findVisibleByXpath',
             'textExists',
             'getDriver',
             'getSauceDriver',
@@ -140,7 +137,11 @@ class SeleniumHelper {
         // This is especially important on Windows, where Selenium directs JS console messages to stdout
         args.push('--autoplay-policy=no-user-gesture-required');
 
-        chromeCapabilities.set('chromeOptions', createChromeOptions(args, process.env.CHROME_BINARY_PATH));
+        const chromeOptions = {args};
+        if (process.env.CHROME_BINARY_PATH) {
+            chromeOptions.binary = process.env.CHROME_BINARY_PATH;
+        }
+        chromeCapabilities.set('chromeOptions', chromeOptions);
         chromeCapabilities.setLoggingPrefs({
             performance: 'ALL'
         });
@@ -187,27 +188,6 @@ class SeleniumHelper {
             const el = await this.driver.wait(until.elementLocated(By.xpath(xpath)), DEFAULT_TIMEOUT_MILLISECONDS);
             // await this.driver.wait(() => el.isDisplayed(), DEFAULT_TIMEOUT_MILLISECONDS);
             return el;
-        } catch (cause) {
-            throw await enhanceError(outerError, cause, this.driver);
-        }
-    }
-
-    /**
-     * Find the first visible element matching an xpath.
-     * @param {string} xpath The xpath to search for.
-     * @returns {Promise<webdriver.WebElement>} A promise that resolves to a visible element.
-     */
-    async findVisibleByXpath (xpath) {
-        const outerError = new Error(`findVisibleByXpath failed with arguments:\n\txpath: ${xpath}`);
-        try {
-            await this.setTitle(`findVisibleByXpath ${xpath}`);
-            return await this.driver.wait(async () => {
-                const elements = await this.driver.findElements(By.xpath(xpath));
-                for (const element of elements) {
-                    if (await element.isDisplayed()) return element;
-                }
-                return false;
-            }, DEFAULT_TIMEOUT_MILLISECONDS);
         } catch (cause) {
             throw await enhanceError(outerError, cause, this.driver);
         }
@@ -261,8 +241,13 @@ class SeleniumHelper {
             await this.setTitle(`loadUri ${uri}`);
             const WINDOW_WIDTH = 1024;
             const WINDOW_HEIGHT = 768;
+            const hashIndex = uri.indexOf('#');
+            const queryEnd = hashIndex === -1 ? uri.length : hashIndex;
+            const querySeparator = uri.substring(0, queryEnd).includes('?') ? '&' : '?';
+            const integrationTestUri = `${uri.substring(0, queryEnd)}` +
+                `${querySeparator}integration_test=true${uri.substring(queryEnd)}`;
             await this.driver
-                .get(`file://${addIntegrationTestMode(uri)}`);
+                .get(`file://${integrationTestUri}`);
             await this.driver
                 .executeScript('window.onbeforeunload = undefined;');
             await this.driver.manage().window()

@@ -188,7 +188,6 @@
 .tabs {
     position: relative;
     flex-grow: 1;
-    min-height: 0; /* Allow this flex item to shrink when the backpack expands. */
     display: flex;
     flex-direction: column;
 }

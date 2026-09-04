@@ -6,7 +6,6 @@ import AppStateHOC from '../lib/app-state-hoc.jsx';
 import GUI from '../containers/gui.jsx';
 import HashParserHOC from '../lib/hash-parser-hoc.jsx';
 import log from '../lib/log.js';
-import {isIntegrationTestMode} from './integration-test-mode';
 
 const onClickLogo = () => {
     window.location = 'https://scratch.mit.edu';
@@ -43,7 +42,8 @@ export default appTarget => {
     // TODO a hack for testing the backpack, allow backpack host to be set by url param
     const backpackHostMatches = window.location.href.match(/[?&]backpack_host=([^&]*)&?/);
     const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
-    const integrationTestMode = isIntegrationTestMode(window.location.href);
+    const integrationTestMode = window.location.protocol === 'file:' &&
+        /[?&]integration_test=true(?:[&#]|$)/.test(window.location.href);
     const integrationTestProps = integrationTestMode ? {
         backpackVisible: true,
         onClickLogo,
