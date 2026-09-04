@@ -44,6 +44,7 @@ export default appTarget => {
     const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
     const isIntegrationTest = window.location.protocol === 'file:' &&
         /[?&]integration_test=true(?:[&#]|$)/.test(window.location.href);
+    const integrationTestProps = isIntegrationTest ? {onClickLogo} : {};
 
     const scratchDesktopMatches = window.location.href.match(/[?&]isScratchDesktop=([^&]+)/);
     let simulateScratchDesktop;
@@ -80,9 +81,9 @@ export default appTarget => {
                 canEditTitle
                 backpackHost={backpackHost}
                 canSave={false}
-                onClickLogo={isIntegrationTest ? onClickLogo : null}
                 showComingSoon={isIntegrationTest}
                 showMenuBar={isIntegrationTest}
+                {...integrationTestProps}
             />,
         appTarget);
 };

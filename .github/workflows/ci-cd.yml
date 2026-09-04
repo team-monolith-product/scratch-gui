@@ -123,12 +123,6 @@ jobs:
               env:
                 NODE_ENV: production
               run: npm run build
-            - name: Cache Build Directory
-              uses: actions/cache@v4
-              with:
-                path: 
-                    ./build
-                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
             - name: Cache Dist Directory
               uses: actions/cache@v4
               with:
@@ -183,15 +177,7 @@ jobs:
             - run: |
                 echo Installed chromium version: ${{ steps.setup-chrome.outputs.chrome-version }}
                 ${{ steps.setup-chrome.outputs.chrome-path }} --version
-            - name: Configure Chrome Sandbox
-              env:
-                CHROME_SANDBOX_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}-sandbox
-              run: |
-                sudo chown root:root "$CHROME_SANDBOX_PATH"
-                sudo chmod 4755 "$CHROME_SANDBOX_PATH"
             - name: Run Integration Tests
-              env:
-                CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
               run: npm run test:integration -- --reporters="default" --reporters="jest-junit"
             - name: Store Integration Test Results
               uses: actions/upload-artifact@v4
@@ -239,11 +225,10 @@ jobs:
                     node_modules
                 key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
             - name: Retrieve Build Directory
-              uses: actions/cache@v4
+              uses: actions/download-artifact@v4
               with:
-                path: 
-                    ./build
-                key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
+                name: build-output
+                path: ./build
             - name: Deploy playground to GitHub Pages
               
               uses: peaceiris/actions-gh-pages@v4

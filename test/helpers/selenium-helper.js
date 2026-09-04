@@ -137,7 +137,7 @@ class SeleniumHelper {
         // This is especially important on Windows, where Selenium directs JS console messages to stdout
         args.push('--autoplay-policy=no-user-gesture-required');
 
-        chromeCapabilities.set('chromeOptions', {args, binary: process.env.CHROME_BINARY_PATH});
+        chromeCapabilities.set('chromeOptions', {args});
         chromeCapabilities.setLoggingPrefs({
             performance: 'ALL'
         });
@@ -239,11 +239,9 @@ class SeleniumHelper {
             const WINDOW_HEIGHT = 768;
             const hashIndex = uri.indexOf('#');
             const queryEnd = hashIndex === -1 ? uri.length : hashIndex;
-            const uriBeforeHash = uri.substring(0, queryEnd);
-            const querySeparator = uriBeforeHash.includes('?') ? '&' : '?';
-            const localeQuery = /[?&]locale=/.test(uriBeforeHash) ? '' : '&locale=en';
-            const integrationTestUri = `${uriBeforeHash}${querySeparator}integration_test=true` +
-                `${localeQuery}${uri.substring(queryEnd)}`;
+            const querySeparator = uri.substring(0, queryEnd).includes('?') ? '&' : '?';
+            const integrationTestUri = `${uri.substring(0, queryEnd)}` +
+                `${querySeparator}integration_test=true${uri.substring(queryEnd)}`;
             await this.driver
                 .get(`file://${integrationTestUri}`);
             await this.driver
