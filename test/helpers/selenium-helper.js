@@ -3,6 +3,7 @@ jest.setTimeout(30000); // eslint-disable-line no-undef
 import bindAll from 'lodash.bindall';
 import 'chromedriver'; // register path
 import webdriver from 'selenium-webdriver';
+import {addIntegrationTestMode} from '../../src/playground/integration-test-mode';
 
 const {Button, By, until} = webdriver;
 
@@ -62,6 +63,7 @@ class SeleniumHelper {
             'findByText',
             'textToXpath',
             'findByXpath',
+            'findVisibleByXpath',
             'textExists',
             'getDriver',
             'getSauceDriver',
@@ -190,6 +192,27 @@ class SeleniumHelper {
     }
 
     /**
+     * Find the first visible element matching an xpath.
+     * @param {string} xpath The xpath to search for.
+     * @returns {Promise<webdriver.WebElement>} A promise that resolves to a visible element.
+     */
+    async findVisibleByXpath (xpath) {
+        const outerError = new Error(`findVisibleByXpath failed with arguments:\n\txpath: ${xpath}`);
+        try {
+            await this.setTitle(`findVisibleByXpath ${xpath}`);
+            return await this.driver.wait(async () => {
+                const elements = await this.driver.findElements(By.xpath(xpath));
+                for (const element of elements) {
+                    if (await element.isDisplayed()) return element;
+                }
+                return false;
+            }, DEFAULT_TIMEOUT_MILLISECONDS);
+        } catch (cause) {
+            throw await enhanceError(outerError, cause, this.driver);
+        }
+    }
+
+    /**
      * Generate an xpath that finds an element by its text.
      * @param {string} text The text to search for.
      * @param {string} [scope] An optional xpath scope to search within.
@@ -238,7 +261,7 @@ class SeleniumHelper {
             const WINDOW_WIDTH = 1024;
             const WINDOW_HEIGHT = 768;
             await this.driver
-                .get(`file://${uri}`);
+                .get(`file://${addIntegrationTestMode(uri)}`);
             await this.driver
                 .executeScript('window.onbeforeunload = undefined;');
             await this.driver.manage().window()
