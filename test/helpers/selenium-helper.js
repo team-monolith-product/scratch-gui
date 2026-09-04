@@ -239,9 +239,11 @@ class SeleniumHelper {
             const WINDOW_HEIGHT = 768;
             const hashIndex = uri.indexOf('#');
             const queryEnd = hashIndex === -1 ? uri.length : hashIndex;
-            const querySeparator = uri.substring(0, queryEnd).includes('?') ? '&' : '?';
-            const integrationTestUri = `${uri.substring(0, queryEnd)}` +
-                `${querySeparator}integration_test=true${uri.substring(queryEnd)}`;
+            const uriBeforeHash = uri.substring(0, queryEnd);
+            const querySeparator = uriBeforeHash.includes('?') ? '&' : '?';
+            const localeQuery = /[?&]locale=/.test(uriBeforeHash) ? '' : '&locale=en';
+            const integrationTestUri = `${uriBeforeHash}${querySeparator}integration_test=true` +
+                `${localeQuery}${uri.substring(queryEnd)}`;
             await this.driver
                 .get(`file://${integrationTestUri}`);
             await this.driver
