@@ -20,6 +20,7 @@ import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
 import {DEFAULT_THEME, getColorsForTheme, themeMap} from '../lib/themes';
 import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../lib/themes/blockHelpers';
+import serializeProjectBlocks from '../lib/serialize-project-blocks';
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -105,6 +106,9 @@ class Blocks extends React.Component {
             {rtl: this.props.isRtl, toolbox: this.props.toolboxXML, colours: getColorsForTheme(this.props.theme)}
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
+        this.props.onLlmReadySupplementAvailable(
+            () => serializeProjectBlocks(this.props.vm, this.ScratchBlocks)
+        );
 
         // Register buttons under new callback keys for creating variables,
         // lists, and procedures from extensions.
@@ -196,6 +200,7 @@ class Blocks extends React.Component {
         }
     }
     componentWillUnmount () {
+        this.props.onLlmReadySupplementAvailable();
         this.detachVM();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
@@ -559,6 +564,7 @@ class Blocks extends React.Component {
             onActivateColorPicker,
             onOpenConnectionModal,
             onOpenSoundRecorder,
+            onLlmReadySupplementAvailable,
             updateToolboxState,
             onActivateCustomProcedures,
             onRequestCloseExtensionLibrary,
@@ -624,6 +630,7 @@ Blocks.propTypes = {
     onActivateCustomProcedures: PropTypes.func,
     onOpenConnectionModal: PropTypes.func,
     onOpenSoundRecorder: PropTypes.func,
+    onLlmReadySupplementAvailable: PropTypes.func,
     onRequestCloseCustomProcedures: PropTypes.func,
     onRequestCloseExtensionLibrary: PropTypes.func,
     options: PropTypes.shape({
@@ -666,6 +673,7 @@ Blocks.defaultOptions = {
 
 Blocks.defaultProps = {
     isVisible: true,
+    onLlmReadySupplementAvailable: () => {},
     options: Blocks.defaultOptions,
     theme: DEFAULT_THEME
 };

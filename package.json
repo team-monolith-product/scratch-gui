@@ -1,6 +1,6 @@
 {
   "name": "@team-monolith/scratch-gui",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Graphical User Interface for creating and running Scratch 3.0 projects",
   "author": "Massachusetts Institute of Technology",
   "license": "BSD-3-Clause",
@@ -10,6 +10,7 @@
     "url": "https://github.com/team-monolith-product/scratch-gui.git"
   },
   "main": "./dist/scratch-gui.js",
+  "types": "./index.d.ts",
   "scripts": {
     "build": "npm run clean && NODE_ENV=production webpack --colors --bail",
     "clean": "rimraf ./build && mkdirp build && rimraf ./dist && mkdirp dist",
