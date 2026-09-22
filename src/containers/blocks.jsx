@@ -2,6 +2,7 @@ import bindAll from 'lodash.bindall';
 import debounce from 'lodash.debounce';
 import defaultsDeep from 'lodash.defaultsdeep';
 import makeToolboxXML from '../lib/make-toolbox-xml';
+import filterToolboxXML, {filterDataFlyout, filterProcedureFlyout} from '../lib/filter-toolbox-xml';
 import PropTypes from 'prop-types';
 import React from 'react';
 import VMScratchBlocks from '../lib/blocks';
@@ -73,6 +74,8 @@ class Blocks extends React.Component {
             'handleMonitorsUpdate',
             'handleExtensionAdded',
             'handleBlocksInfoUpdate',
+            'setupToolboxCategoryFilters',
+            'restoreToolboxCategoryFilters',
             'onTargetsUpdate',
             'onVisualReport',
             'onWorkspaceUpdate',
@@ -103,8 +106,13 @@ class Blocks extends React.Component {
         const workspaceConfig = defaultsDeep({},
             Blocks.defaultOptions,
             this.props.options,
-            {rtl: this.props.isRtl, toolbox: this.props.toolboxXML, colours: getColorsForTheme(this.props.theme)}
+            {
+                rtl: this.props.isRtl,
+                toolbox: filterToolboxXML(this.props.toolboxXML, this.props.blockTypesToShow),
+                colours: getColorsForTheme(this.props.theme)
+            }
         );
+        this.setupToolboxCategoryFilters();
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
         this.props.onLlmReadySupplementAvailable(
             () => getLlmReadySupplement(this.props.vm, this.ScratchBlocks)
@@ -158,7 +166,8 @@ class Blocks extends React.Component {
             this.props.customProceduresVisible !== nextProps.customProceduresVisible ||
             this.props.locale !== nextProps.locale ||
             this.props.anyModalVisible !== nextProps.anyModalVisible ||
-            this.props.stageSize !== nextProps.stageSize
+            this.props.stageSize !== nextProps.stageSize ||
+            this.props.blockTypesToShow !== nextProps.blockTypesToShow
         );
     }
     componentDidUpdate (prevProps) {
@@ -172,6 +181,12 @@ class Blocks extends React.Component {
         // Do not check against prevProps.toolboxXML because that may not have been rendered.
         if (this.props.isVisible && this.props.toolboxXML !== this._renderedToolboxXML) {
             this.requestToolboxUpdate();
+        }
+        if (this.props.isVisible && this.props.blockTypesToShow !== prevProps.blockTypesToShow) {
+            const toolboxXML = this.getToolboxXML();
+            if (toolboxXML) {
+                this.props.updateToolboxState(toolboxXML);
+            }
         }
 
         if (this.props.isVisible === prevProps.isVisible) {
@@ -202,6 +217,7 @@ class Blocks extends React.Component {
     componentWillUnmount () {
         this.props.onLlmReadySupplementAvailable();
         this.detachVM();
+        this.restoreToolboxCategoryFilters();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
 
@@ -232,7 +248,7 @@ class Blocks extends React.Component {
 
         const categoryId = this.workspace.toolbox_.getSelectedCategoryId();
         const offset = this.workspace.toolbox_.getCategoryScrollOffset();
-        this.workspace.updateToolbox(this.props.toolboxXML);
+        this.workspace.updateToolbox(filterToolboxXML(this.props.toolboxXML, this.props.blockTypesToShow));
         this._renderedToolboxXML = this.props.toolboxXML;
 
         // In order to catch any changes that mutate the toolbox during "normal runtime"
@@ -251,6 +267,29 @@ class Blocks extends React.Component {
         const queue = this.toolboxUpdateQueue;
         this.toolboxUpdateQueue = [];
         queue.forEach(fn => fn());
+    }
+
+    setupToolboxCategoryFilters () {
+        this.originalProceduresFlyoutCategory = this.ScratchBlocks.Procedures.flyoutCategory;
+        this.ScratchBlocks.Procedures.flyoutCategory = workspace => filterProcedureFlyout(
+            this.originalProceduresFlyoutCategory(workspace),
+            this.props.blockTypesToShow
+        );
+
+        this.originalDataCategory = this.ScratchBlocks.DataCategory;
+        this.ScratchBlocks.DataCategory = workspace => filterDataFlyout(
+            this.originalDataCategory(workspace),
+            this.props.blockTypesToShow
+        );
+    }
+
+    restoreToolboxCategoryFilters () {
+        if (this.originalProceduresFlyoutCategory) {
+            this.ScratchBlocks.Procedures.flyoutCategory = this.originalProceduresFlyoutCategory;
+        }
+        if (this.originalDataCategory) {
+            this.ScratchBlocks.DataCategory = this.originalDataCategory;
+        }
     }
 
     withToolboxUpdates (fn) {
@@ -364,12 +403,13 @@ class Blocks extends React.Component {
                 this.props.vm.runtime.getBlocksXML(target),
                 this.props.theme
             );
-            return makeToolboxXML(false, target.isStage, target.id, dynamicBlocksXML,
+            const toolboxXML = makeToolboxXML(false, target.isStage, target.id, dynamicBlocksXML,
                 targetCostumes[targetCostumes.length - 1].name,
                 stageCostumes[stageCostumes.length - 1].name,
                 targetSounds.length > 0 ? targetSounds[targetSounds.length - 1].name : '',
                 getColorsForTheme(this.props.theme)
             );
+            return filterToolboxXML(toolboxXML, this.props.blockTypesToShow);
         } catch {
             return null;
         }
@@ -558,6 +598,7 @@ class Blocks extends React.Component {
             extensionLibraryVisible,
             options,
             stageSize,
+            blockTypesToShow,
             vm,
             isRtl,
             isVisible,
@@ -644,6 +685,7 @@ Blocks.propTypes = {
         collapse: PropTypes.bool
     }),
     stageSize: PropTypes.oneOf(Object.keys(STAGE_DISPLAY_SIZES)).isRequired,
+    blockTypesToShow: PropTypes.arrayOf(PropTypes.string),
     theme: PropTypes.oneOf(Object.keys(themeMap)),
     toolboxXML: PropTypes.string,
     updateMetrics: PropTypes.func,

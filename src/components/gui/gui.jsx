@@ -74,6 +74,7 @@ const GUIComponent = props => {
         backpackVisible,
         blocksId,
         blocksTabVisible,
+        blockTypesToShow,
         cardsVisible,
         canChangeLanguage,
         canChangeTheme,
@@ -369,6 +370,7 @@ const GUIComponent = props => {
                                         <Blocks
                                             key={`${blocksId}/${theme}`}
                                             canUseCloud={canUseCloud}
+                                            blockTypesToShow={blockTypesToShow}
                                             grow={1}
                                             isVisible={blocksTabVisible}
                                             options={{
@@ -445,6 +447,7 @@ GUIComponent.propTypes = {
     backpackVisible: PropTypes.bool,
     basePath: PropTypes.string,
     blocksTabVisible: PropTypes.bool,
+    blockTypesToShow: PropTypes.arrayOf(PropTypes.string),
     blocksId: PropTypes.string,
     canChangeLanguage: PropTypes.bool,
     canChangeTheme: PropTypes.bool,
