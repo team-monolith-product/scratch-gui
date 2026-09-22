@@ -277,10 +277,12 @@ class Blocks extends React.Component {
         );
 
         this.originalDataCategory = this.ScratchBlocks.DataCategory;
-        this.ScratchBlocks.DataCategory = workspace => filterDataFlyout(
+        const filteredDataCategory = workspace => filterDataFlyout(
             this.originalDataCategory(workspace),
             this.props.blockTypesToShow
         );
+        Object.assign(filteredDataCategory, this.originalDataCategory);
+        this.ScratchBlocks.DataCategory = filteredDataCategory;
     }
 
     restoreToolboxCategoryFilters () {
