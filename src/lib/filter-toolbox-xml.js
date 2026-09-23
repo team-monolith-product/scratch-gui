@@ -85,7 +85,11 @@ export const filterProcedureFlyout = (xmlList, blockTypesToShow) => {
 
     const allowedBlockTypes = new Set(blockTypesToShow);
     return xmlList.filter(xml => {
-        if (getTagName(xml) === 'button') return false;
+        if (getTagName(xml) === 'button') {
+            // Keep the action that creates the dynamic category's allowed blocks.
+            return xml.getAttribute('callbackKey') === 'MAKE_A_PROCEDURE' &&
+                isCustomCategoryAllowed('PROCEDURE', allowedBlockTypes);
+        }
         if (getTagName(xml) !== 'block') return true;
         const mutation = xml.getElementsByTagName('mutation')[0];
         const proccode = mutation && mutation.getAttribute('proccode');
@@ -100,7 +104,13 @@ export const filterDataFlyout = (xmlList, blockTypesToShow) => {
     const allowedBlockTypes = new Set(blockTypesToShow);
     return xmlList.filter(xml => {
         const tagName = getTagName(xml);
-        if (tagName === 'button') return false;
+        if (tagName === 'button') {
+            // Keep only the creation actions needed by the allowed block types.
+            const callbackKey = xml.getAttribute('callbackKey');
+            if (callbackKey === 'MAKE_A_VARIABLE') return hasVariableBlock(allowedBlockTypes);
+            if (callbackKey === 'MAKE_A_LIST') return hasListBlock(allowedBlockTypes);
+            return false;
+        }
         if (tagName === 'sep') return true;
         if (tagName !== 'block') return true;
         return isDynamicDataBlockAllowed(xml.getAttribute('type'), allowedBlockTypes);

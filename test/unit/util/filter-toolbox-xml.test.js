@@ -61,16 +61,21 @@ describe('filterProcedureFlyout', () => {
 
         const filtered = filterProcedureFlyout(xmlList, ['procedures_definition:move %s steps']);
 
-        expect(filtered).toHaveLength(1);
+        expect(filtered).toHaveLength(2);
         expect(filtered[0].getElementsByTagName('mutation')[0].getAttribute('proccode'))
             .toBe('move %s steps');
+        expect(filtered[1].getAttribute('callbackKey')).toBe('MAKE_A_PROCEDURE');
+
+        expect(filterProcedureFlyout(xmlList, ['motion_movesteps'])).toHaveLength(0);
     });
 });
 
 describe('filterDataFlyout', () => {
-    test('keeps variable and list flyout blocks when their operations are used', () => {
+    test('keeps variable creation when a variable block is used', () => {
         const xmlList = [
             parseXml('<button text="Make a variable" callbackKey="MAKE_A_VARIABLE" />')
+                .documentElement,
+            parseXml('<button text="Make a list" callbackKey="MAKE_A_LIST" />')
                 .documentElement,
             parseXml('<block type="data_variable" />').documentElement,
             parseXml('<block type="data_listcontents" />').documentElement,
@@ -79,6 +84,26 @@ describe('filterDataFlyout', () => {
 
         const filtered = filterDataFlyout(xmlList, ['data_showvariable']);
 
-        expect(filtered.map(xml => xml.getAttribute('type'))).toEqual(['data_variable', 'data_showvariable']);
+        expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'button')
+            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['MAKE_A_VARIABLE']);
+        expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'block')
+            .map(xml => xml.getAttribute('type'))).toEqual(['data_variable', 'data_showvariable']);
+    });
+
+    test('keeps list creation when a list block is used', () => {
+        const xmlList = [
+            parseXml('<button text="Make a variable" callbackKey="MAKE_A_VARIABLE" />')
+                .documentElement,
+            parseXml('<button text="Make a list" callbackKey="MAKE_A_LIST" />')
+                .documentElement,
+            parseXml('<block type="data_listcontents" />').documentElement
+        ];
+
+        const filtered = filterDataFlyout(xmlList, ['data_listcontents']);
+
+        expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'button')
+            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['MAKE_A_LIST']);
+        expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'block')
+            .map(xml => xml.getAttribute('type'))).toEqual(['data_listcontents']);
     });
 });
