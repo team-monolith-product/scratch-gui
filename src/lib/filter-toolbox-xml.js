@@ -5,23 +5,40 @@ const getElementChildren = element => Array.from(element.childNodes)
 
 const getTagName = element => element.tagName.toLowerCase();
 
-const hasBlockType = (allowedBlockTypes, blockType) => allowedBlockTypes.has(blockType);
+const VARIABLE_BLOCK_TYPES = [
+    'data_variable',
+    'data_setvariableto',
+    'data_changevariableby',
+    'data_showvariable',
+    'data_hidevariable'
+];
 
-const hasVariableBlock = allowedBlockTypes => Array.from(allowedBlockTypes)
-    .some(blockType => blockType === 'data_variable' || blockType === 'data_setvariableto' ||
-        blockType === 'data_changevariableby' || blockType === 'data_showvariable' ||
-        blockType === 'data_hidevariable');
+const LIST_BLOCK_TYPES = [
+    'data_listcontents',
+    'data_addtolist',
+    'data_deleteoflist',
+    'data_deletealloflist',
+    'data_insertatlist',
+    'data_replaceitemoflist',
+    'data_itemoflist',
+    'data_itemnumoflist',
+    'data_lengthoflist',
+    'data_listcontainsitem',
+    'data_showlist',
+    'data_hidelist'
+];
 
-const hasListBlock = allowedBlockTypes => Array.from(allowedBlockTypes)
-    .some(blockType => blockType === 'data_listcontents' || blockType === 'data_addtolist' ||
-        blockType === 'data_deleteoflist' || blockType === 'data_deletealloflist' ||
-        blockType === 'data_insertatlist' || blockType === 'data_replaceitemoflist' ||
-        blockType === 'data_itemoflist' || blockType === 'data_itemnumoflist' ||
-        blockType === 'data_lengthoflist' || blockType === 'data_listcontainsitem' ||
-        blockType === 'data_showlist' || blockType === 'data_hidelist');
+const hasAnyBlockType = (allowedBlockTypes, blockTypes) =>
+    blockTypes.some(blockType => allowedBlockTypes.has(blockType));
+
+const hasVariableBlock = allowedBlockTypes =>
+    hasAnyBlockType(allowedBlockTypes, VARIABLE_BLOCK_TYPES);
+
+const hasListBlock = allowedBlockTypes =>
+    hasAnyBlockType(allowedBlockTypes, LIST_BLOCK_TYPES);
 
 const isDynamicDataBlockAllowed = (blockType, allowedBlockTypes) => {
-    if (hasBlockType(allowedBlockTypes, blockType)) return true;
+    if (allowedBlockTypes.has(blockType)) return true;
     if (blockType === 'data_variable') return hasVariableBlock(allowedBlockTypes);
     if (blockType === 'data_listcontents') return hasListBlock(allowedBlockTypes);
     return false;
@@ -44,7 +61,9 @@ const hasDirectBlock = category => getElementChildren(category)
  * Filter the static blocks in a Scratch toolbox XML document.
  * Dynamic variable and procedure categories are filtered by their Blockly callbacks.
  * @param {string} toolboxXML Toolbox XML to filter.
- * @param {string[]} blockTypesToShow Block types allowed in the toolbox.
+ * @param {string[]} blockTypesToShow Allowed block opcodes; an empty or undefined list disables filtering.
+ * Custom blocks use `procedures_call:<proccode>` or `procedures_definition:<proccode>`.
+ * Variable and list reporters remain available when any block of their kind is allowed.
  * @returns {string} Filtered toolbox XML.
  */
 const filterToolboxXML = (toolboxXML, blockTypesToShow) => {
@@ -65,9 +84,7 @@ const filterToolboxXML = (toolboxXML, blockTypesToShow) => {
         getElementChildren(category).forEach(child => {
             if (getTagName(child) !== 'block') return;
             const blockType = child.getAttribute('type');
-            if (customType === 'VARIABLE' ?
-                !isDynamicDataBlockAllowed(blockType, allowedBlockTypes) :
-                !hasBlockType(allowedBlockTypes, blockType)) {
+            if (!allowedBlockTypes.has(blockType)) {
                 category.removeChild(child);
             }
         });
@@ -77,6 +94,7 @@ const filterToolboxXML = (toolboxXML, blockTypesToShow) => {
         }
     });
 
+    if (document.getElementsByTagName('category').length === 0) return toolboxXML;
     return new XMLSerializer().serializeToString(document.documentElement);
 };
 
@@ -87,14 +105,14 @@ export const filterProcedureFlyout = (xmlList, blockTypesToShow) => {
     return xmlList.filter(xml => {
         if (getTagName(xml) === 'button') {
             // Keep the action that creates the dynamic category's allowed blocks.
-            return xml.getAttribute('callbackKey') === 'MAKE_A_PROCEDURE' &&
+            return xml.getAttribute('callbackKey') === 'CREATE_PROCEDURE' &&
                 isCustomCategoryAllowed('PROCEDURE', allowedBlockTypes);
         }
         if (getTagName(xml) !== 'block') return true;
         const mutation = xml.getElementsByTagName('mutation')[0];
         const proccode = mutation && mutation.getAttribute('proccode');
-        return proccode && (hasBlockType(allowedBlockTypes, `procedures_call:${proccode}`) ||
-            hasBlockType(allowedBlockTypes, `procedures_definition:${proccode}`));
+        return proccode && (allowedBlockTypes.has(`procedures_call:${proccode}`) ||
+            allowedBlockTypes.has(`procedures_definition:${proccode}`));
     });
 };
 
@@ -107,8 +125,8 @@ export const filterDataFlyout = (xmlList, blockTypesToShow) => {
         if (tagName === 'button') {
             // Keep only the creation actions needed by the allowed block types.
             const callbackKey = xml.getAttribute('callbackKey');
-            if (callbackKey === 'MAKE_A_VARIABLE') return hasVariableBlock(allowedBlockTypes);
-            if (callbackKey === 'MAKE_A_LIST') return hasListBlock(allowedBlockTypes);
+            if (callbackKey === 'CREATE_VARIABLE') return hasVariableBlock(allowedBlockTypes);
+            if (callbackKey === 'CREATE_LIST') return hasListBlock(allowedBlockTypes);
             return false;
         }
         if (tagName === 'sep') return true;

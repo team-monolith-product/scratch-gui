@@ -46,6 +46,12 @@ describe('filterToolboxXML', () => {
         expect(filterToolboxXML(toolboxXML)).toBe(toolboxXML);
         expect(filterToolboxXML(toolboxXML, [])).toBe(toolboxXML);
     });
+
+    test('keeps the original toolbox when filtering would remove every category', () => {
+        const toolboxXML = '<xml><category name="Motion"><block type="motion_movesteps" /></category></xml>';
+
+        expect(filterToolboxXML(toolboxXML, ['unknown_block'])).toBe(toolboxXML);
+    });
 });
 
 describe('filterProcedureFlyout', () => {
@@ -55,7 +61,7 @@ describe('filterProcedureFlyout', () => {
                 .documentElement,
             parseXml('<block type="procedures_call"><mutation proccode="say hello" /></block>')
                 .documentElement,
-            parseXml('<button text="Make a block" callbackKey="MAKE_A_PROCEDURE" />')
+            parseXml('<button text="Make a block" callbackKey="CREATE_PROCEDURE" />')
                 .documentElement
         ];
 
@@ -64,7 +70,7 @@ describe('filterProcedureFlyout', () => {
         expect(filtered).toHaveLength(2);
         expect(filtered[0].getElementsByTagName('mutation')[0].getAttribute('proccode'))
             .toBe('move %s steps');
-        expect(filtered[1].getAttribute('callbackKey')).toBe('MAKE_A_PROCEDURE');
+        expect(filtered[1].getAttribute('callbackKey')).toBe('CREATE_PROCEDURE');
 
         expect(filterProcedureFlyout(xmlList, ['motion_movesteps'])).toHaveLength(0);
     });
@@ -73,9 +79,9 @@ describe('filterProcedureFlyout', () => {
 describe('filterDataFlyout', () => {
     test('keeps variable creation when a variable block is used', () => {
         const xmlList = [
-            parseXml('<button text="Make a variable" callbackKey="MAKE_A_VARIABLE" />')
+            parseXml('<button text="Make a variable" callbackKey="CREATE_VARIABLE" />')
                 .documentElement,
-            parseXml('<button text="Make a list" callbackKey="MAKE_A_LIST" />')
+            parseXml('<button text="Make a list" callbackKey="CREATE_LIST" />')
                 .documentElement,
             parseXml('<block type="data_variable" />').documentElement,
             parseXml('<block type="data_listcontents" />').documentElement,
@@ -85,16 +91,16 @@ describe('filterDataFlyout', () => {
         const filtered = filterDataFlyout(xmlList, ['data_showvariable']);
 
         expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'button')
-            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['MAKE_A_VARIABLE']);
+            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['CREATE_VARIABLE']);
         expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'block')
             .map(xml => xml.getAttribute('type'))).toEqual(['data_variable', 'data_showvariable']);
     });
 
     test('keeps list creation when a list block is used', () => {
         const xmlList = [
-            parseXml('<button text="Make a variable" callbackKey="MAKE_A_VARIABLE" />')
+            parseXml('<button text="Make a variable" callbackKey="CREATE_VARIABLE" />')
                 .documentElement,
-            parseXml('<button text="Make a list" callbackKey="MAKE_A_LIST" />')
+            parseXml('<button text="Make a list" callbackKey="CREATE_LIST" />')
                 .documentElement,
             parseXml('<block type="data_listcontents" />').documentElement
         ];
@@ -102,7 +108,7 @@ describe('filterDataFlyout', () => {
         const filtered = filterDataFlyout(xmlList, ['data_listcontents']);
 
         expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'button')
-            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['MAKE_A_LIST']);
+            .map(xml => xml.getAttribute('callbackKey'))).toEqual(['CREATE_LIST']);
         expect(filtered.filter(xml => xml.tagName.toLowerCase() === 'block')
             .map(xml => xml.getAttribute('type'))).toEqual(['data_listcontents']);
     });

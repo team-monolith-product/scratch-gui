@@ -112,8 +112,21 @@ class Blocks extends React.Component {
                 colours: getColorsForTheme(this.props.theme)
             }
         );
-        this.setupToolboxCategoryFilters();
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
+        this.workspace.registerToolboxCategoryCallback(
+            this.ScratchBlocks.VARIABLE_CATEGORY_NAME,
+            workspace => filterDataFlyout(
+                this.ScratchBlocks.DataCategory(workspace),
+                this.props.blockTypesToShow
+            )
+        );
+        this.workspace.registerToolboxCategoryCallback(
+            this.ScratchBlocks.PROCEDURE_CATEGORY_NAME,
+            workspace => filterProcedureFlyout(
+                this.ScratchBlocks.Procedures.flyoutCategory(workspace),
+                this.props.blockTypesToShow
+            )
+        );
         this.props.onLlmReadySupplementAvailable(
             () => getLlmReadySupplement(this.props.vm, this.ScratchBlocks)
         );
@@ -179,14 +192,11 @@ class Blocks extends React.Component {
         // Only rerender the toolbox when the blocks are visible and the xml is
         // different from the previously rendered toolbox xml.
         // Do not check against prevProps.toolboxXML because that may not have been rendered.
-        if (this.props.isVisible && this.props.toolboxXML !== this._renderedToolboxXML) {
+        if (this.props.isVisible && (
+            this.props.toolboxXML !== this._renderedToolboxXML ||
+            this.props.blockTypesToShow !== prevProps.blockTypesToShow
+        )) {
             this.requestToolboxUpdate();
-        }
-        if (this.props.isVisible && this.props.blockTypesToShow !== prevProps.blockTypesToShow) {
-            const toolboxXML = this.getToolboxXML();
-            if (toolboxXML) {
-                this.props.updateToolboxState(toolboxXML);
-            }
         }
 
         if (this.props.isVisible === prevProps.isVisible) {
@@ -217,7 +227,6 @@ class Blocks extends React.Component {
     componentWillUnmount () {
         this.props.onLlmReadySupplementAvailable();
         this.detachVM();
-        this.restoreToolboxCategoryFilters();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
 
@@ -267,31 +276,6 @@ class Blocks extends React.Component {
         const queue = this.toolboxUpdateQueue;
         this.toolboxUpdateQueue = [];
         queue.forEach(fn => fn());
-    }
-
-    setupToolboxCategoryFilters () {
-        this.originalProceduresFlyoutCategory = this.ScratchBlocks.Procedures.flyoutCategory;
-        this.ScratchBlocks.Procedures.flyoutCategory = workspace => filterProcedureFlyout(
-            this.originalProceduresFlyoutCategory(workspace),
-            this.props.blockTypesToShow
-        );
-
-        this.originalDataCategory = this.ScratchBlocks.DataCategory;
-        const filteredDataCategory = workspace => filterDataFlyout(
-            this.originalDataCategory(workspace),
-            this.props.blockTypesToShow
-        );
-        Object.assign(filteredDataCategory, this.originalDataCategory);
-        this.ScratchBlocks.DataCategory = filteredDataCategory;
-    }
-
-    restoreToolboxCategoryFilters () {
-        if (this.originalProceduresFlyoutCategory) {
-            this.ScratchBlocks.Procedures.flyoutCategory = this.originalProceduresFlyoutCategory;
-        }
-        if (this.originalDataCategory) {
-            this.ScratchBlocks.DataCategory = this.originalDataCategory;
-        }
     }
 
     withToolboxUpdates (fn) {
@@ -411,7 +395,7 @@ class Blocks extends React.Component {
                 targetSounds.length > 0 ? targetSounds[targetSounds.length - 1].name : '',
                 getColorsForTheme(this.props.theme)
             );
-            return filterToolboxXML(toolboxXML, this.props.blockTypesToShow);
+            return toolboxXML;
         } catch {
             return null;
         }
