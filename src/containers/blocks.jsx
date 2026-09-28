@@ -74,8 +74,6 @@ class Blocks extends React.Component {
             'handleMonitorsUpdate',
             'handleExtensionAdded',
             'handleBlocksInfoUpdate',
-            'setupToolboxCategoryFilters',
-            'restoreToolboxCategoryFilters',
             'onTargetsUpdate',
             'onVisualReport',
             'onWorkspaceUpdate',
