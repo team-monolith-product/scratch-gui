@@ -129,7 +129,6 @@ export const filterDataFlyout = (xmlList, blockTypesToShow) => {
             if (callbackKey === 'CREATE_LIST') return hasListBlock(allowedBlockTypes);
             return false;
         }
-        if (tagName === 'sep') return true;
         if (tagName !== 'block') return true;
         return isDynamicDataBlockAllowed(xml.getAttribute('type'), allowedBlockTypes);
     });

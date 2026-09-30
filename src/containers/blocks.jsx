@@ -387,13 +387,12 @@ class Blocks extends React.Component {
                 this.props.vm.runtime.getBlocksXML(target),
                 this.props.theme
             );
-            const toolboxXML = makeToolboxXML(false, target.isStage, target.id, dynamicBlocksXML,
+            return makeToolboxXML(false, target.isStage, target.id, dynamicBlocksXML,
                 targetCostumes[targetCostumes.length - 1].name,
                 stageCostumes[stageCostumes.length - 1].name,
                 targetSounds.length > 0 ? targetSounds[targetSounds.length - 1].name : '',
                 getColorsForTheme(this.props.theme)
             );
-            return toolboxXML;
         } catch {
             return null;
         }
